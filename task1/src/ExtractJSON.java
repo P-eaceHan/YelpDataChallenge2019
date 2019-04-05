@@ -15,7 +15,7 @@ import org.json.simple.parser.*;
 public class ExtractJSON {
     public static void main(String[] args) throws Exception {
         // parsing file "JSONExample.json"
-        Object obj = new JSONParser().parse(new FileReader("data/business.json"));
+        Object obj = new JSONParser().parse(new FileReader("../data/test.json"));
 
         // typecasting obj to JSONObject
         JSONObject jo = (JSONObject) obj;
