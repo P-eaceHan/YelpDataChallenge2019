@@ -33,6 +33,7 @@ public class SampleJSON {
         String line;
         HashMap<String, Integer> cats = new HashMap<>();
         int docCount = 0;
+
         System.out.println("collecting categories...");
         while ((line = buffr.readLine()) != null) {
 //            System.out.println(line);
@@ -50,6 +51,8 @@ public class SampleJSON {
                 }
             }
         }
+
+        System.out.println("Sorting businesses...");
         Map<String, Integer> top100 =
                 cats.entrySet().stream()
                     .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
@@ -66,48 +69,12 @@ public class SampleJSON {
             top100Count += val;
             System.out.println(key + ": " + val);
         }
+
         System.out.println("total number of businesses in " + fileString + ": " + docCount);
         System.out.println("total number of businesses in top100: " + top100Count);
+
         pw.close();
         buffr.close();
-        /*
-        try {
-
-            while((line = br.readLine()) != null)
-            {
-//        		    System.out.println(line);
-                JSONObject json = (JSONObject) parser.parse(line);
-                StringBuilder sb = new StringBuilder();
-//               	    String[] entries = {"business_id", "name", "stars", "review_count","categories"};
-
-                String business_id = (String) json.get("business_id");
-                business_id = business_id.replaceAll(",", " ");
-                sb.append(business_id);
-                sb.append(',');
-
-                String name = (String) json.get("review_id");
-                name = name.replaceAll(",", " ");
-                sb.append(name);
-                sb.append(",");
-
-                String text = (String) json.get("text");
-                if(text != null) {
-                    text = text.replaceAll("\n", " ");
-                    text = text.replaceAll(",", " ");
-                    sb.append(text);
-                }
-
-                System.out.println("JSON : " + sb.toString());
-                pw.write(sb.toString());
-
-                pw.println();
-            }
-            pw.close();
-            buffr.close();
-        }
-        catch(ParseException | IOException e) {
-            e.printStackTrace();
-        }*/
     }
 }
 
