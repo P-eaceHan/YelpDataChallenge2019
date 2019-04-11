@@ -23,13 +23,12 @@ public class SampleJSON {
         JSONParser parser = new JSONParser();
         String pathString = "../data/";
         String fileString = "business.json";
-        String outString = "output/business.csv";
+        String outString = "output/business_sub.json";
         File file = new File(pathString+fileString);
         File outputfile = new File(pathString+outString);
 
         System.out.println("Reading in " + fileString);
         BufferedReader buffr = new BufferedReader(new FileReader(file));
-        PrintWriter pw = new PrintWriter(outputfile);
         String line;
         HashMap<String, Integer> cats = new HashMap<>();
         int docCount = 0;
@@ -71,10 +70,41 @@ public class SampleJSON {
         }
 
         System.out.println("total number of businesses in " + fileString + ": " + docCount);
-        System.out.println("total number of businesses in top100: " + top100Count);
+        System.out.println("total number of businesses with labels in top100: " + top100Count);
+        buffr.close();
+
+        System.out.println("Reading in " + fileString);
+        BufferedReader buffr2 = new BufferedReader(new FileReader(file));
+        PrintWriter pw = new PrintWriter(outputfile);
+        int busCount = 0;
+        System.out.println("collecting business subset...");
+        while ((line = buffr2.readLine()) != null) {
+//            System.out.println(line);
+            JSONObject json = (JSONObject) parser.parse(line);
+            String catString = (String) json.get("categories");
+            if (catString != null){
+                String[] busCats = catString.split(",");
+                for (String cat : busCats) {
+                    cat = cat.trim();
+//                    System.out.println(cat);
+                    if (top100.containsKey(cat)) {
+                        busCount++;
+                        pw.write(json.toJSONString());
+//                        System.out.println(json.toJSONString());
+//                        pw.write(json.toString());
+                        pw.println();
+                        break;
+//                        cats.put(cat, 0); // add this business to output
+                    }
+//                    cats.put(cat, cats.get(cat) + 1);
+//                    docCount++;
+                }
+            }
+        }
+        System.out.println("total number of businesses in subset: " + busCount);
 
         pw.close();
-        buffr.close();
+        buffr2.close();
     }
 }
 
