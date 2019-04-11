@@ -25,7 +25,6 @@ public class SampleJSON {
         String fileString = "business.json";
         String outString = "output/business_sub.json";
         File file = new File(pathString+fileString);
-        File outputfile = new File(pathString+outString);
 
         System.out.println("Reading in " + fileString);
         BufferedReader buffr = new BufferedReader(new FileReader(file));
@@ -52,15 +51,17 @@ public class SampleJSON {
         }
 
         System.out.println("Sorting businesses...");
-        Map<String, Integer> top100 =
+        int k = 100;
+        Map<String, Integer> topK =
                 cats.entrySet().stream()
                     .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                    .limit(100)
+                    .limit(k)
                     .collect(Collectors.toMap(
                             Map.Entry::getKey, Map.Entry::getValue,
                             (e1,e2) -> e1,
                             LinkedHashMap::new));
 
+        /*
         int top100Count = 0;
         for (Map.Entry<String, Integer> entry : top100.entrySet()) {
             String key = entry.getKey();
@@ -68,43 +69,74 @@ public class SampleJSON {
             top100Count += val;
             System.out.println(key + ": " + val);
         }
+        */
 
         System.out.println("total number of businesses in " + fileString + ": " + docCount);
-        System.out.println("total number of businesses with labels in top100: " + top100Count);
         buffr.close();
 
-        System.out.println("Reading in " + fileString);
-        BufferedReader buffr2 = new BufferedReader(new FileReader(file));
+        File outputfile = new File(pathString+outString);
+        System.out.println("Reading in " + fileString + " to generate " + outString);
+        buffr = new BufferedReader(new FileReader(file));
         PrintWriter pw = new PrintWriter(outputfile);
-        int busCount = 0;
+//        ArrayList<String> businessIds = new ArrayList<>();
+        HashMap<String, Integer> businessIds = new HashMap<>(382000);
+
         System.out.println("collecting business subset...");
-        while ((line = buffr2.readLine()) != null) {
+        int n = 3; // number of category labels a business should have
+        while ((line = buffr.readLine()) != null) {
 //            System.out.println(line);
             JSONObject json = (JSONObject) parser.parse(line);
             String catString = (String) json.get("categories");
             if (catString != null){
                 String[] busCats = catString.split(",");
-                for (String cat : busCats) {
-                    cat = cat.trim();
+                if (busCats.length > 3) {
+                    for (String cat : busCats) {
+                        cat = cat.trim();
 //                    System.out.println(cat);
-                    if (top100.containsKey(cat)) {
-                        busCount++;
-                        pw.write(json.toJSONString());
+                        if (topK.containsKey(cat)) {
+                            businessIds.put((String) json.get("business_id"), 1);
 //                        System.out.println(json.toJSONString());
-//                        pw.write(json.toString());
-                        pw.println();
-                        break;
-//                        cats.put(cat, 0); // add this business to output
+                            pw.write(json.toJSONString());
+                            pw.println();
+                            break;
+                        }
                     }
-//                    cats.put(cat, cats.get(cat) + 1);
-//                    docCount++;
                 }
             }
         }
-        System.out.println("total number of businesses in subset: " + busCount);
+        System.out.println("total number of businesses in subset: " + businessIds.size());
 
         pw.close();
-        buffr2.close();
+        buffr.close();
+
+        // now use newly generated subset of business.json to sample from review.json
+        parser = new JSONParser();
+        fileString = "review.json";
+        outString = "output/review_sub.json";
+        file = new File(pathString+fileString);
+        outputfile = new File(pathString+outString);
+        pw = new PrintWriter(outputfile);
+
+        System.out.println("Reading in " + fileString + " to generate " + outString);
+        buffr = new BufferedReader(new FileReader(file));
+        int revCount = 0;
+        int revSubCount = 0;
+        while ((line = buffr.readLine()) != null) {
+//            System.out.println(line);
+            JSONObject json = (JSONObject) parser.parse(line);
+            String busId = (String) json.get("business_id");
+            revCount++;
+            if (busId != null && businessIds.containsKey(busId)){
+//                System.out.println(line);
+                revSubCount++;
+                pw.write(json.toJSONString());
+                pw.println();
+            }
+        }
+        System.out.println("total number of reviews in subset: " + revSubCount);
+        System.out.println("total number of reviews in review.json: " + revCount);
+        pw.close();
+        buffr.close();
     }
 }
 
