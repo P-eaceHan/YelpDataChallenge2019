@@ -21,9 +21,16 @@ public class ExtractSubJSON {
 
     public static void main(String[] args) throws Exception {
         JSONParser parser = new JSONParser();
+        /* Krupa file paths
         String pathString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/yelp_dataset/";
         String fileString = "business.json";
         String outString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/business_sub.csv";
+        File file = new File(pathString+fileString);
+        */
+        /* Peace file paths */
+        String pathString = "../data/";
+        String fileString = "business.json";
+        String outString = pathString+ "business_sub.csv";
         File file = new File(pathString+fileString);
 
         System.out.println("Reading in " + fileString);
@@ -31,8 +38,10 @@ public class ExtractSubJSON {
         String line;
         HashMap<String, Integer> cats = new HashMap<>();
         int docCount = 0;
-        PrintWriter pw1 = new PrintWriter("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/categories.csv");
-   	    StringBuilder sb = new StringBuilder();
+        // Krupa file path
+//        PrintWriter pw1 = new PrintWriter("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/categories.csv");
+        PrintWriter pw1 = new PrintWriter(pathString + "output/categories.csv");
+        StringBuilder sb = new StringBuilder();
 
         System.out.println("collecting categories...");
         while ((line = buffr.readLine()) != null) {
@@ -121,7 +130,7 @@ public class ExtractSubJSON {
         }
         System.out.println("JSON "+ sb.toString());
         pw1.write(sb.toString());
-        pw1.println();
+//        pw1.println();
         pw.close();
         pw1.close();
         buffr.close();
@@ -131,10 +140,11 @@ public class ExtractSubJSON {
 
         
 
-         //now use newly generated subset of business.json to sample from review.json
+        // now use newly generated subset of business.json to sample from review.json
         parser = new JSONParser();
         fileString = "review.json";
-        outString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/review_sub.json";
+//        outString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/review_sub.json";
+        outString = pathString + "review_sub.json";
         file = new File(pathString+fileString);
         outputfile = new File(outString);
         pw = new PrintWriter(outputfile);

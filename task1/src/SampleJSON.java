@@ -19,6 +19,7 @@ import org.json.simple.parser.*;
 
 public class SampleJSON {
 
+    /*
     public static void main(String[] args) throws Exception {
         JSONParser parser = new JSONParser();
         String pathString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/yelp_dataset/";
@@ -61,7 +62,7 @@ public class SampleJSON {
                             (e1,e2) -> e1,
                             LinkedHashMap::new));
 
-        /*
+
         int top100Count = 0;
         for (Map.Entry<String, Integer> entry : top100.entrySet()) {
             String key = entry.getKey();
@@ -69,7 +70,6 @@ public class SampleJSON {
             top100Count += val;
             System.out.println(key + ": " + val);
         }
-        */
 
         System.out.println("total number of businesses in " + fileString + ": " + docCount);
         buffr.close();
@@ -137,6 +137,6 @@ public class SampleJSON {
         System.out.println("total number of reviews in review.json: " + revCount);
         pw.close();
         buffr.close();
-    }
+    }*/
 }
 

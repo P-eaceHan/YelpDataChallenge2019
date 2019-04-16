@@ -42,13 +42,16 @@ import com.opencsv.CSVReader;
 
 
 public class GenerateIndex {
-	
+	private static String pathString = "../data/";
+
 	public static void main(String[] args) 
 	{
 		System.out.println("Collection creation");
-		String reviews = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/review_sub.csv";
+//		String reviews = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/review_sub.csv";
 //		String tips = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/tip.csv";
-		
+		String reviews = pathString + "output/review_sub.csv";
+//		String tips = pathString + "output/tip.csv";
+
 		try {		
 			
 			Map<String, ArrayList<String>> reviewsCollection = createReviewList(reviews);
@@ -56,8 +59,8 @@ public class GenerateIndex {
 
 			
 			generateIndex(reviewsCollection);
-//			
-			analyseIndexes("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/indexes/review_sub/");
+//			analyseIndexes("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/indexes/review_sub/");
+			analyseIndexes(pathString + "output/indexes/review_sub/");
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -120,7 +123,8 @@ public class GenerateIndex {
 	public static String removeStopWords(String str) throws IOException {
 		
 		ArrayList<String> stop_words = new ArrayList<String>();
-		BufferedReader br = new BufferedReader(new FileReader("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/stopwords.txt"));
+//		BufferedReader br = new BufferedReader(new FileReader("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/stopwords.txt"));
+		BufferedReader br = new BufferedReader(new FileReader(pathString + "stopwords.txt"));
 		String line = br.readLine();
 		while(line != null) {
 			stop_words.add(line);
@@ -148,8 +152,9 @@ public class GenerateIndex {
 	
 	public static void generateIndex(Map<String, ArrayList<String>> reviewsCollection) throws IOException {
 		
-		String indexPath = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/indexes/review_sub/";
-		
+//		String indexPath = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/indexes/review_sub/";
+		String indexPath = pathString + "output/indexes/review_sub/";
+
 		Directory dir = FSDirectory.open(Paths.get(indexPath));
 		
 		Analyzer analyzer = new StandardAnalyzer();
