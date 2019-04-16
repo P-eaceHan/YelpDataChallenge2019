@@ -56,22 +56,21 @@ public class PredictCategories {
 						
 			System.out.println("Total number of queries: " + categoriesList.size());
 			
-//			HashMap<String,HashMap<String,Float>> BM25CategoryPreds = findQuery(new BM25Similarity(), categoriesList, "run-1", "BM25 Algorithm");
+			HashMap<String,HashMap<String,Float>> BM25CategoryPreds = findQuery(new BM25Similarity(), categoriesList, "run-1", "BM25 Algorithm");
 			HashMap<String,HashMap<String,Float>> ClassicCategoryPreds = findQuery(new ClassicSimilarity(), categoriesList, "run-1", "Classic Algorithm");
 			HashMap<String,HashMap<String,Float>>  LMDCategoryPreds= findQuery(new LMDirichletSimilarity(), categoriesList, "run-1", "LMD Algorithm");
 			HashMap<String,HashMap<String,Float>> LMJMCategoryPreds = findQuery(new LMJelinekMercerSimilarity(.7f), categoriesList, "run-1", "LMJM Algorithm");
 
-//			System.out.println("BM25 :" + BM25CategoryPreds);
+			System.out.println("BM25 :" + BM25CategoryPreds);
 			System.out.println("Classic :" + ClassicCategoryPreds);
 			System.out.println("LMD :" + LMDCategoryPreds);
 			System.out.println("LMJM :" + LMJMCategoryPreds);
 
 			
-//			businessToCatMapping(BM25CategoryPreds,"BM25QueryResults.csv");
+			businessToCatMapping(BM25CategoryPreds,"BM25QueryResults.csv");
 			businessToCatMapping(ClassicCategoryPreds,"ClassicQueryResults.csv");
-//
-//			businessToCatMapping(LMDCategoryPreds,"LMDQueryResults.csv");
-//			businessToCatMapping(LMJMCategoryPreds,"LMJMQueryResults.csv");
+			businessToCatMapping(LMDCategoryPreds,"LMDQueryResults.csv");
+			businessToCatMapping(LMJMCategoryPreds,"LMJMQueryResults.csv");
 			
 			System.out.println("DONE");
 
@@ -110,7 +109,6 @@ public class PredictCategories {
 			System.out.println("qString: " + queryString);
 			Query query = parser.parse(QueryParser.escape(queryString));
 			System.out.println("Searching for: " + query.toString("text"));
-			/*
 
 			TopDocs results = searcher.search(query, 300);
 
@@ -142,21 +140,12 @@ public class PredictCategories {
 					catToScoreMap.put(queryString, score);
 					categoryPredictions.put(businessId,catToScoreMap);
 				}
-				
-				
 				 System.out.println("TEXT: "+doc.get("text"));
 				//System.out.println(result);
 				rank++;
-
-
-			
-			}*/
-			
-
+			}
 		}
-
 		reader.close();
-		
 		return categoryPredictions;
 	}
 
@@ -165,8 +154,8 @@ public class PredictCategories {
 		
 		System.out.println("Writing results in " + fileName);
 		for(Map.Entry<String, HashMap<String,Float>> outer : catMapping.entrySet()){
-			//System.out.println("Business Id: " + outer.getKey());
-			//System.out.println();
+//			System.out.println("Business Id: " + outer.getKey());
+//			System.out.println();
 			HashMap<String, Float> innerMap = outer.getValue();
 			Map<String, Float> sortedMap = sortByValue(innerMap);
 			//System.out.println(sortedMap);
@@ -177,7 +166,7 @@ public class PredictCategories {
 			for(Map.Entry<String, Float> inner : sortedMap.entrySet()){
 				if(n<=2){
 				arrayList.add(inner.getKey());
-				//System.out.print("Category: " + inner.getKey() + "Value  "  + inner.getValue());
+				System.out.print("Category: " + inner.getKey() + "Value  "  + inner.getValue());
 				n++;
 				}
 			}
@@ -188,6 +177,7 @@ public class PredictCategories {
 				csvWriter.close();
 			}else{
 				//System.out.println(a[0]);
+				System.out.println("No prediction for : " + a[0]);
 
 			}
 			
