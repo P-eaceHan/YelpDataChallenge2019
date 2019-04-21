@@ -104,28 +104,25 @@ public class ExtractSubJSON {
             String city = (String) json.get("state");
             if (catString != null){
                 String[] busCats = catString.split(",");
-                if (busCats.length > 3) 
-                {
+                if (busCats.length > n) {
                     for (String cat : busCats) {
                         cat = cat.trim();
                         if (topK.containsKey(cat) && review_count > 75) {
                         	if( stars == 1 || stars == 5) {
                             System.out.println("Review Count: " + review_count);
-                            System.out.println("Stars : " + stars);
-                        	if(!sb.equals(cat)) {
-                        	sb.append(cat);
-                        	sb.append("\n");
-                        	}
-                            businessIds.put((String) json.get("business_id"), 1);
-                            pw.write(json.toString());
-                            pw.println();
-                            break;
+                                System.out.println("Stars : " + stars);
+                                if (!sb.equals(cat)) {
+                                    sb.append(cat);
+                                    sb.append("\n");
+                                }
+                                businessIds.put((String) json.get("business_id"), 1);
+                                pw.write(json.toString());
+                                pw.println();
+                                break;
                         	}
                         }
-                        
                     }
                 }
-                
             }
         }
         System.out.println("JSON "+ sb.toString());
