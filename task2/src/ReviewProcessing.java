@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.*;
 //import java.lang.*;
 
@@ -20,7 +21,8 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  *  - text summarization?
  *  - dependency parse?
  * output feature vector:
- * [ #positive_words, #negative_words, #!s(?), LTGs ]
+ * [ pos_score, neg_score, [JJs+contexts], [NNs+contexts] ... ]
+ * Alt features..: [ pos_score, neg_score, #!s(?), LTGs ]
  *
  * RNN based model
  * CNN model (adjectives, nouns and contexts), TFIDF feature selection
@@ -32,6 +34,10 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * A class to store the final FeatureVector info to be written/analyzed
  */
 class FeatureVector {
+    /**
+     * output feature vector:
+     * [ pos_score, neg_score, [JJs+contexts], [NNs+contexts] ... ]
+     */
     String revID;
     String revText;
     float stars;
@@ -44,11 +50,26 @@ class FeatureVector {
         this.revText = revText;
         this.stars = stars;
     }
+
     void setPosScore(int score) {
         this.posScore = score;
+//        System.out.println("pos score set!");
     }
     void setNegScore(int score) {
         this.negScore = score;
+    }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(posScore);
+        sb.append("\t");
+        sb.append(negScore);
+        sb.append("\t");
+        sb.append(jjs);
+        sb.append("\t");
+        sb.append(nns);
+        sb.append("\n");
+        return sb.toString();
     }
 }
 
@@ -72,29 +93,25 @@ class Context {
     }
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Context for ");
         sb.append(this.keyword);
-        sb.append(": ");
+//        sb.append("Context for ");
+//        sb.append(this.keyword);
+//        sb.append(": ");
         sb.append(this.context);
-        sb.append("\n");
+//        sb.append("\n");
         return sb.toString();
     }
 }
 
 public class ReviewProcessing {
-    static String pathString = "../data/";
-    static String filename = "output/review_sub.csv";
-    static String posWords = "opinion-lexicon-English/positive-words.txt";
-    static String negWords = "opinion-lexicon-English/negative-words.txt";
     static HashMap<String, Integer> sentPos = new HashMap<>(6800);
     static HashMap<String, Integer> sentNeg = new HashMap<>(6800);
 
-    private static int processNLP(FeatureVector review) {
+    private static void processNLP(FeatureVector review) {
         // setting up StanfordCoreNLP
         Properties props = new Properties();
-        props.setProperty("annotators", "tokenize,ssplit,pos,lemma,depparse");
+        props.setProperty("annotators", "tokenize,ssplit,pos,lemma");
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-        // TODO: make CoreNLP run for longer
         String revText = review.revText;
         CoreDocument doc = new CoreDocument(revText);
         pipeline.annotate(doc);
@@ -139,7 +156,6 @@ public class ReviewProcessing {
 //        System.out.println(nns);
         review.jjs = jjs;
         review.nns = nns;
-        return pos;
     }
 
     private static List<Context> buildContexts(LinkedList<Index> indeces,
@@ -189,6 +205,11 @@ public class ReviewProcessing {
     }
 
     public static void main(String[] arg) throws Exception {
+        String pathString = "../data/";
+        String filename = "output/review_sub.csv";
+        String posWords = "opinion-lexicon-English/positive-words.txt";
+        String negWords = "opinion-lexicon-English/negative-words.txt";
+
         System.out.println("collecting positive words...");
         File file = new File(pathString + posWords);
         BufferedReader buffr = new BufferedReader(new FileReader(file));
@@ -214,10 +235,12 @@ public class ReviewProcessing {
         System.out.println(sentPos.toString());
         System.out.println(sentNeg.toString());
 
+        String outfilename = "task2/review_features.tsv";
+        File outfile = new File(pathString + outfilename);
+        FileWriter out = new FileWriter(outfile);
         file = new File(pathString + filename);
         buffr = new BufferedReader(new FileReader(file));
         System.out.println("extracting feature vectors from " + filename);
-        // TODO: do all the NLP analyses as one function
         line = buffr.readLine();
         while ((line = buffr.readLine()) != null) {
             String[] lineArr = line.split(",");
@@ -227,6 +250,8 @@ public class ReviewProcessing {
             float stars = Float.parseFloat(lineArr[2]); // this is the stars rating
             FeatureVector featVec = new FeatureVector(revID, text, stars);
             processNLP(featVec);
+            System.out.println(featVec.toString());
+            out.write(featVec.toString());
 //            int posScore = scoreSentiment(sentences, sentPos);
 //            int negScore = scoreSentiment(sentences, sentNeg);
 //            System.out.println("positive score for " + text + ":");
@@ -238,5 +263,7 @@ public class ReviewProcessing {
 //
 //            }
         }
+        out.close();
+        buffr.close();
     }
 }
