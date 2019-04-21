@@ -24,6 +24,10 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * [ pos_score, neg_score, [JJs+contexts], [NNs+contexts] ... ]
  * Alt features..: [ pos_score, neg_score, #!s(?), LTGs ]
  *
+ * Our baseline: SVM
+ * Our algo: NB - global vs. local ? (also maybe CNN)
+ * TODO: word embeddings (potentially with gensim)
+ * TODO: finish formatting context.toString()
  * RNN based model
  * CNN model (adjectives, nouns and contexts), TFIDF feature selection
  * @author Peace Han
@@ -44,6 +48,7 @@ class FeatureVector {
     int posScore, negScore;
     List<Context> jjs; // list of adjectives and their context words
     List<Context> nns; // list of nouns and their context words
+    int realScore;
 
     FeatureVector(String revID, String revText, float stars){
         this.revID = revID;
@@ -53,12 +58,13 @@ class FeatureVector {
 
     void setPosScore(int score) {
         this.posScore = score;
-//        System.out.println("pos score set!");
     }
     void setNegScore(int score) {
         this.negScore = score;
     }
-
+    void setRealScore(int score) {
+        this.realScore = score;
+    }
     public String toString(){
         StringBuilder sb = new StringBuilder();
         sb.append(posScore);
@@ -97,7 +103,10 @@ class Context {
 //        sb.append("Context for ");
 //        sb.append(this.keyword);
 //        sb.append(": ");
-        sb.append(this.context);
+        sb.append(",");
+        String cont = new StringBuilder(this.context.toString()).deleteCharAt(0).toString();
+        String cont = new StringBuilder(this.context.toString()).deleteCharAt(0).toString();
+        sb.append(cont);
 //        sb.append("\n");
         return sb.toString();
     }
