@@ -34,9 +34,6 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * @author Krupa Patel
  */
 
-/**
- * A class to store the final FeatureVector info to be written/analyzed
- */
 class FeatureVector {
     /**
      * output feature vector:
@@ -99,15 +96,12 @@ class Context {
     }
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("[");
         sb.append(this.keyword);
-//        sb.append("Context for ");
-//        sb.append(this.keyword);
-//        sb.append(": ");
-        sb.append(",");
-        String cont = new StringBuilder(this.context.toString()).deleteCharAt(0).toString();
-        String cont = new StringBuilder(this.context.toString()).deleteCharAt(0).toString();
+        sb.append(", ");
+        String cont = new StringBuilder(this.context.toString())
+                .deleteCharAt(0).toString(); // delete the initial "[" from context
         sb.append(cont);
-//        sb.append("\n");
         return sb.toString();
     }
 }
