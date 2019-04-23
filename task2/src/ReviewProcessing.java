@@ -45,7 +45,6 @@ class FeatureVector {
     int posScore, negScore;
     List<Context> jjs; // list of adjectives and their context words
     List<Context> nns; // list of nouns and their context words
-    int realScore;
 
     FeatureVector(String revID, String revText, float stars){
         this.revID = revID;
@@ -59,11 +58,11 @@ class FeatureVector {
     void setNegScore(int score) {
         this.negScore = score;
     }
-    void setRealScore(int score) {
-        this.realScore = score;
-    }
+
     public String toString(){
         StringBuilder sb = new StringBuilder();
+        sb.append(revID);
+        sb.append("\t");
         sb.append(posScore);
         sb.append("\t");
         sb.append(negScore);
@@ -71,6 +70,15 @@ class FeatureVector {
         sb.append(jjs);
         sb.append("\t");
         sb.append(nns);
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    public String getStar() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(revID);
+        sb.append("\t");
+        sb.append(stars);
         sb.append("\n");
         return sb.toString();
     }
@@ -96,12 +104,27 @@ class Context {
     }
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        sb.append(this.keyword);
-        sb.append(", ");
-        String cont = new StringBuilder(this.context.toString())
-                .deleteCharAt(0).toString(); // delete the initial "[" from context
-        sb.append(cont);
+        // for [w-3, w-2, w-1, keyword, w+1, w+2, w+3]
+        sb.append(context.get(0));
+        sb.append(" ");
+        sb.append(context.get(1));
+        sb.append(" ");
+        sb.append(context.get(2));
+        sb.append(" ");
+        sb.append(keyword);
+        sb.append(" ");
+        sb.append(context.get(3));
+        sb.append(" ");
+        sb.append(context.get(4));
+        sb.append(" ");
+        sb.append(context.get(5));
+        // for [keyword, w-3, w-2, w-1, w+1, w+2, w+3]
+//        sb.append("[");
+//        sb.append(this.keyword);
+//        sb.append(", ");
+//        String cont = new StringBuilder(this.context.toString())
+//                .deleteCharAt(0).toString(); // delete the initial "[" from context
+//        sb.append(cont);
         return sb.toString();
     }
 }
@@ -240,10 +263,13 @@ public class ReviewProcessing {
 
         String outfilename = "task2/review_features.tsv";
         File outfile = new File(pathString + outfilename);
-        FileWriter out = new FileWriter(outfile);
+        FileWriter features = new FileWriter(outfile);
+        String outlabelfile = "task2/review_labels.tsv";
+        File labelfile = new File(pathString + outlabelfile);
+        FileWriter labels = new FileWriter(labelfile);
         file = new File(pathString + filename);
         buffr = new BufferedReader(new FileReader(file));
-        System.out.println("extracting feature vectors from " + filename);
+        System.out.println("extracting feature vectors and labels from " + filename);
         line = buffr.readLine();
         while ((line = buffr.readLine()) != null) {
             String[] lineArr = line.split(",");
@@ -254,7 +280,9 @@ public class ReviewProcessing {
             FeatureVector featVec = new FeatureVector(revID, text, stars);
             processNLP(featVec);
             System.out.println(featVec.toString());
-            out.write(featVec.toString());
+            System.out.println(featVec.getStar());
+            features.write(featVec.toString());
+            labels.write(featVec.getStar());
 //            int posScore = scoreSentiment(sentences, sentPos);
 //            int negScore = scoreSentiment(sentences, sentNeg);
 //            System.out.println("positive score for " + text + ":");
@@ -266,7 +294,8 @@ public class ReviewProcessing {
 //
 //            }
         }
-        out.close();
+        features.close();
+        labels.close();
         buffr.close();
     }
 }
