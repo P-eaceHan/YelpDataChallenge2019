@@ -11,6 +11,9 @@ from keras.models import Model
 # getting the pre-trained word embeddings
 path = '/home/peace/edu/3/'
 filename = 'model.txt'  # NLPL dataset 3
+# download from http://vectors.nlpl.eu/repository/ (search for English)
+# ID 3, vector size 300, window 5 'English Wikipedia Dump of February 2017'
+# vocab size: 296630; Algo: Gensim Continuous Skipgram; Lemma: True
 print("Indexing word vectors from", filename)
 
 embeddings_index = {}
