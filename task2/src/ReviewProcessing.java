@@ -27,7 +27,6 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * Our baseline: SVM
  * Our algo: NB - global vs. local ? (also maybe CNN)
  * TODO: word embeddings (potentially with gensim)
- * TODO: finish formatting context.toString()
  * RNN based model
  * CNN model (adjectives, nouns and contexts), TFIDF feature selection
  * @author Peace Han
@@ -62,6 +61,8 @@ class FeatureVector {
     public String toString(){
         StringBuilder sb = new StringBuilder();
         sb.append(revID);
+        sb.append("\t");
+        sb.append(stars);
         sb.append("\t");
         sb.append(posScore);
         sb.append("\t");
