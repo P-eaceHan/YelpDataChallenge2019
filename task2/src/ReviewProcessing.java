@@ -265,7 +265,10 @@ public class ReviewProcessing {
         String outfilename = "task2/review_features.tsv";
         File outfile = new File(pathString + outfilename);
         FileWriter features = new FileWriter(outfile);
-        String outlabelfile = "task2/review_labels.tsv";
+        String outfilename2 = "task2/review_features2.tsv";
+        File outfile2 = new File(pathString + outfilename2);
+        FileWriter features2 = new FileWriter(outfile2);
+        String outlabelfile = "task2/review_labels2.tsv";
         File labelfile = new File(pathString + outlabelfile);
         FileWriter labels = new FileWriter(labelfile);
         file = new File(pathString + filename);
@@ -278,12 +281,18 @@ public class ReviewProcessing {
             String revID = lineArr[1]; // this is the review id
             String text = lineArr[6];
             float stars = Float.parseFloat(lineArr[2]); // this is the stars rating
-            FeatureVector featVec = new FeatureVector(revID, text, stars);
-            processNLP(featVec);
-            System.out.println(featVec.toString());
-            System.out.println(featVec.getStar());
-            features.write(featVec.toString());
-            labels.write(featVec.getStar());
+//            FeatureVector featVec = new FeatureVector(revID, text, stars);
+//            processNLP(featVec);
+//            System.out.println(featVec.toString());
+//            System.out.println(featVec.getStar());
+//            features.write(featVec.toString());
+            features2.write(revID);
+            features2.write("\t");
+            features2.write(Float.toString(stars));
+            features2.write("\t");
+            features2.write(text);
+            features2.write("\n");
+//            labels.write(featVec.getStar());
 //            int posScore = scoreSentiment(sentences, sentPos);
 //            int negScore = scoreSentiment(sentences, sentNeg);
 //            System.out.println("positive score for " + text + ":");
