@@ -124,8 +124,8 @@ x_train = data[:-num_validation_samples]
 print(x_train[0])
 y_train = labels[:-num_validation_samples]
 # y_train = to_cat_tensor(y_train, 5)
-x_val = data[-num_validation_samples]
-y_val = labels[-num_validation_samples]
+x_val = data[-num_validation_samples:]
+y_val = labels[-num_validation_samples:]
 # y_val = to_cat_tensor(y_val, 5)
 print("Shape of x_train: ", x_train.shape)
 print("Shape of y_train: ", y_train.shape)
@@ -133,37 +133,9 @@ print("Shape of x_val: ", x_val.shape)
 print("Shape of y_val: ", y_val.shape)
 
 
-# def create_emb_matrix(filepath, index, embedding_dim):
-#     vocab_size = len(word_index) + 1
-#     embed_matrix = np.zeros((vocab_size, embedding_dim))
-#     with open(filepath) as file:
-#         for l in file:
-#             w, c = l.split(maxsplit=1)
-#             if w in word_index:
-#                 w_idx = index[w]
-#                 embed_matrix[w_idx] = np.array(
-#                     c, dtype=np.float32)[:embedding_dim]
-#     return embed_matrix
-
-
 EMBEDDING_DIM = 300
 num_words = len(word_index) + 1
 
-# embedding_matrix = create_emb_matrix(path+filename, word_index, EMBEDDING_DIM)
-# nonzero_elems = np.count_nonzero(np.count_nonzero(embedding_matrix, axis=1))
-# print(nonzero_elems / num_words)
-# embeddings_index = {}
-# with open(path + filename) as f:
-#     for line in f:
-#         word, coefs = line.split(maxsplit=1)
-#         coefs = np.fromstring(coefs, 'f', sep=' ')
-#         word = word.split('_')[0]  # get just the word, not POS info
-#         embeddings_index[word] = coefs
-
-# print("Found {} word vectors.".format(len(embeddings_index)))
-#
-# EMBEDDING_DIM = 100
-# # num_words = min(MAX_NUM_WORDS, len(word_index) + 1)
 num_words = len(word_index) + 1
 print(len(word_index)+1)
 embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
@@ -186,66 +158,34 @@ embedding_layer = Embedding(x_train.shape[1],
                             trainable=False)
 model = Sequential()
 model.add(Embedding(num_words, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH))
-# model.add(Conv1D(128, 5, activation='relu'))
-# model.add(GlobalMaxPooling1D())
-# model.add(Dense(1000, activation='relu'))
-# model.add(Dense(EMBEDDING_DIM, activation='sigmoid'))
-# model.add(Flatten())
-model.add(Conv1D(64, 3, activation='relu'))
-# model.add(MaxPooling1D(5))
-model.add(Conv1D(32, 3, padding='same'))
-# model.add(MaxPooling1D(5))
-model.add(Conv1D(16, 3, padding='same'))
-model.add(Flatten())
-model.add(Dropout(0.2))
+model.add(Conv1D(128, 5, activation='relu'))
+model.add(GlobalMaxPooling1D())
+model.add(Dense(1000, activation='relu'))
 model.add(Dense(5, activation='sigmoid'))
+# model.add(Flatten())
+# model.add(Conv1D(64, 3, activation='relu'))
+# model.add(MaxPooling1D(5))
+# model.add(Conv1D(32, 3, padding='same'))
+# model.add(MaxPooling1D(5))
+# model.add(Conv1D(16, 3, padding='same'))
+# model.add(Flatten())
+# model.add(Dropout(0.2))
+# model.add(Dense(5, activation='sigmoid'))
 # model.add(GlobalMaxPooling1D())
 # model.add(Dense(180, activation='sigmoid'))
 # model.add(Dropout(0.2))
 # model.add(Dense(len(label_index), activation='softmax'))
 
-tensorBoard = TensorBoard(log_dir='./logs', write_graph=True)
-
-# training the model on the data
-# print("Training model...")
-# sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-# embedded_sequences = embedding_layer(sequence_input)
-# print(embedded_sequences.shape)
-# x = Conv1D(128, 5, activation='relu')(embedded_sequences)
-# print("layer number {}.".format(1))
-# x = MaxPooling1D(5)(x)
-# print("layer number {}.".format(2))
-# x = Conv1D(128, 5, activation='relu')(x)
-# print("layer number {}.".format(3))
-# x = MaxPooling1D(5)(x)
-# print("layer number {} trained.".format(4))
-# x = Conv1D(128, 5, activation='relu')(x)
-# print("layer number {} trained.".format(5))
-# x = GlobalMaxPooling1D()(x)
-# x = MaxPooling1D(35)(x)
-# print("layer number {}.".format(6))
-# x = Flatten()(x)
-# print("layer flatten trained")
-# x = Dense(128, activation='relu')(x)
-# print("layer number {} trained.".format(7))
-# preds = Dense(len(label_index), activation='softmax')(x)
-# print(len(label_index))
-# print("Final dense layer trained and preds calculated.")
-# print("Shape of sequence_input: ", sequence_input.shape)
-# print("Shape of preds: ", preds.shape)
-# # TODO: the shape of features is wrong...?
-# # Error when checking target: expected dense_2 to have shape (5,) but got array with shape (6,)
-# model = Model(sequence_input, preds)
-# print("Model created", model)
+# tensorBoard = TensorBoard(log_dir='./logs', write_graph=True)
 model.compile(loss='categorical_crossentropy',
               optimizer='rmsprop',
-              metrics=['acc'], verbose=2)
+              metrics=['acc'],)
 model.summary()
 print("model compiled successfully")
 model.fit(x_train, y_train,
           batch_size=128,
           epochs=10,
-          validation_data=(x_val, y_val), verbose=2,
-          callbacks=[tensorBoard])
+          validation_data=(x_val, y_val), verbose=2,)
+          # callbacks=[tensorBoard])
 print("model fitted on {}, {}".format(x_train, y_train))
 
