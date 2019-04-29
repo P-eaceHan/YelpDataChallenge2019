@@ -1,5 +1,6 @@
+import time
 import numpy as np
-# from keras.layers.embeddings import Embedding
+from math import sqrt
 from keras.preprocessing.text import Tokenizer, text_to_word_sequence
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
@@ -7,12 +8,12 @@ from keras.initializers import Constant
 from keras.layers import Input, Dense, GlobalMaxPooling1D
 from keras.layers import Conv1D, MaxPooling1D, Embedding, Flatten, Dropout
 from keras.models import Model, Sequential
-from sklearn.preprocessing import LabelEncoder
 from keras.callbacks import TensorBoard
-
+from sklearn.metrics import classification_report, mean_squared_error, r2_score
 
 # getting the features file
-path = '../data/task2/'
+# path = '../data/task2/'
+path = '../'
 # filename = 'review_features.tsv'
 # # labelfile = 'review_labels.tsv'
 #
@@ -38,13 +39,15 @@ path = '../data/task2/'
 # print("max feature_vec length:", maxlength)
 
 filename = 'review_features2.tsv'
+# filename = 'test_features.tsv'
 reviews = []  # list of reviews
 label_index = {}  # dictionary of label name, numeric id
-labels = []  # list of star ratings
+labels = []  # lThe ist of star ratings
 maxlength = 0
-with open(path+filename) as f:
+with open(path + filename) as f:
     for line in f:
         line = line.split('\t')
+        # print(line)
         text = line[2].strip()
         # text = text_to_word_sequence(text)
         if len(text) > maxlength:
@@ -63,11 +66,11 @@ label_set = set(labels)
 print(reviews[0])
 
 # vectorize text features into 2D integer tensor
-MAX_NUM_WORDS = 5000
+# MAX_NUM_WORDS = 5000
 MAX_SEQUENCE_LENGTH = 1000
 
-tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
-# tokenizer = Tokenizer()
+# tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
+tokenizer = Tokenizer()
 tokenizer.fit_on_texts(reviews)
 
 sequences = tokenizer.texts_to_sequences(reviews)
@@ -78,7 +81,7 @@ word_index = tokenizer.word_index
 MAX_NUM_WORDS = len(word_index) + 1
 print('max num words (vocab size)', MAX_NUM_WORDS)
 # print("Found {} unique tokens".format(len(word_index)))
-print(sequences[0])
+# print(sequences[0])
 data = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH, padding='post', truncating='post')
 
 labels = to_categorical(np.asarray(labels))
@@ -86,14 +89,15 @@ labels = to_categorical(np.asarray(labels))
 # encoder = LabelEncoder()
 # encoder.fit(labels)
 # labels = encoder.transform(labels)
-print(labels)
+# print(labels)
 print("Shape of data tensor: ", data.shape)
 print("Shape of label tensor: ", labels.shape)
 
 # prepping the embedding matrix
 print("Preparing embedding matrix...")
 # getting the pre-trained word embeddings
-path = '/home/peace/edu/3/'
+# path = '/home/peace/edu/3/'
+path = '../../3/'
 filename = 'model.txt'  # NLPL dataset 3
 # download from http://vectors.nlpl.eu/repository/ (search for English)
 # ID 3, vector size 300, window 5 'English Wikipedia Dump of February 2017'
@@ -121,7 +125,7 @@ labels = labels[indices]
 num_validation_samples = int(VALIDATION_SPLIT * data.shape[0])
 
 x_train = data[:-num_validation_samples]
-print(x_train[0])
+# print(x_train[0])
 y_train = labels[:-num_validation_samples]
 # y_train = to_cat_tensor(y_train, 5)
 x_val = data[-num_validation_samples:]
@@ -137,7 +141,7 @@ EMBEDDING_DIM = 300
 num_words = len(word_index) + 1
 
 num_words = len(word_index) + 1
-print(len(word_index)+1)
+print("vocab_size:", len(word_index)+1)
 embedding_matrix = np.zeros((num_words, EMBEDDING_DIM))
 for word, i in word_index.items():
     # if i > MAX_NUM_WORDS:
@@ -148,7 +152,7 @@ for word, i in word_index.items():
         if embedding_vector is not None:
             embedding_matrix[i] = embedding_vector
 nonzero_elems = np.count_nonzero(np.count_nonzero(embedding_matrix, axis=1))
-print(nonzero_elems / num_words)
+print("word embedding coverage:", nonzero_elems / num_words)
 
 embedding_layer = Embedding(x_train.shape[1],
                             EMBEDDING_DIM,
@@ -158,34 +162,82 @@ embedding_layer = Embedding(x_train.shape[1],
                             trainable=False)
 model = Sequential()
 model.add(Embedding(num_words, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH))
-model.add(Conv1D(128, 5, activation='relu'))
-model.add(GlobalMaxPooling1D())
-model.add(Dense(1000, activation='relu'))
-model.add(Dense(5, activation='sigmoid'))
-# model.add(Flatten())
-# model.add(Conv1D(64, 3, activation='relu'))
-# model.add(MaxPooling1D(5))
-# model.add(Conv1D(32, 3, padding='same'))
-# model.add(MaxPooling1D(5))
-# model.add(Conv1D(16, 3, padding='same'))
-# model.add(Flatten())
-# model.add(Dropout(0.2))
-# model.add(Dense(5, activation='sigmoid'))
+# exp1 structure
+# model.add(Conv1D(128, 5, activation='relu'))
 # model.add(GlobalMaxPooling1D())
-# model.add(Dense(180, activation='sigmoid'))
-# model.add(Dropout(0.2))
-# model.add(Dense(len(label_index), activation='softmax'))
+# model.add(Dense(1000, activation='relu'))
+# model.add(Dense(5, activation='sigmoid'))
 
-# tensorBoard = TensorBoard(log_dir='./logs', write_graph=True)
+# exp2 structure
+# model.add(Conv1D(128, 5, activation='relu'))
+# model.add(MaxPooling1D(5))
+# model.add(Conv1D(128, 5, activation='relu'))
+# model.add(MaxPooling1D(5))
+# model.add(Flatten())
+# model.add(Dense(128, activation='relu'))
+# model.add(Dense(128, activation='relu'))
+# model.add(Dense(5, activation='sigmoid'))
+
+# exp3 structure
+model.add(Conv1D(3, 5, activation='relu'))
+model.add(MaxPooling1D(5))
+model.add(Flatten())
+model.add(Dense(5, activation='softmax'))
+
+tensorBoard = TensorBoard(log_dir='./logs', write_graph=True)
 model.compile(loss='categorical_crossentropy',
               optimizer='rmsprop',
-              metrics=['acc'],)
+              metrics=['acc', 'mse', 'cosine'],)
+print("Model Summary:")
 model.summary()
 print("model compiled successfully")
-model.fit(x_train, y_train,
-          batch_size=128,
-          epochs=10,
-          validation_data=(x_val, y_val), verbose=2,)
-          # callbacks=[tensorBoard])
-print("model fitted on {}, {}".format(x_train, y_train))
+print("Training the model...")
+start_time = time.time()
+history = model.fit(x_train, y_train,
+                    batch_size=128,
+                    epochs=5,
+                    validation_data=(x_val, y_val), verbose=2,
+                    callbacks=[tensorBoard])
+end_time = np.round(time.time() - start_time, 2)
+print("model fitted on x_train, y_train")
+print("Training time:", end_time)
+
+print("Evaluating the model...")
+start_time = time.time()
+score, acc, mse_me, cosine = model.evaluate(x_val, y_val, verbose=1)
+end_time = np.round(time.time() - start_time, 2)
+print("Eval time:", end_time)
+
+print("score:", score)
+print("acc:", acc)
+print("mse:", mse_me)
+print("cosine:", cosine)
+
+# Evaluating TEST
+print("Evaluating TEST model class prediction")
+start_time = time.time()
+y_pred = model.predict(x_val, 128, verbose=2)
+end_time = np.round(time.time() - start_time, 2)
+print("predict time:", end_time)
+print(classification_report(y_val.argmax(axis=1),
+                            y_pred.argmax(axis=1)))
+mse = mean_squared_error(y_val, y_pred)
+print("mean squared error:", mse)
+print("RMSE:", sqrt(mse))
+r2 = r2_score(y_val, y_pred)
+print("r2:", r2)
+print()
+# Evaluating TRAIN
+print("Evaluating TRAIN model class prediction")
+start_time = time.time()
+y_pred = model.predict(x_train, 128, verbose=2)
+end_time = np.round(time.time() - start_time, 2)
+print("predict time:", end_time)
+print(classification_report(y_train.argmax(axis=1),
+                            y_pred.argmax(axis=1)))
+mse = mean_squared_error(y_train, y_pred)
+print("mean squared error:", mse)
+print("RMSE:", sqrt(mse))
+r2 = r2_score(y_train, y_pred)
+print("r2:", r2)
 
