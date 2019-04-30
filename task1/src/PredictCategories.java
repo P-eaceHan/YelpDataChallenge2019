@@ -1,3 +1,5 @@
+package Task1;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -35,63 +37,56 @@ import com.opencsv.CSVWriter;
 
 
 public class PredictCategories {
-	private static String pathString = "../data/";
 
 	public static void main(String args[]) {
 
 		try {
 			System.setProperty("file.encoding","UTF-8");
-//			String queryPath  = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/categories.csv";
-			String queryPath  = pathString + "output/categories.csv";
+			String queryPath  = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/categories.csv";
 			ArrayList<String> categoriesList = new ArrayList<String>();
 			
 			try(BufferedReader br = new BufferedReader(new FileReader(queryPath))) {
 			    for(String line; (line = br.readLine()) != null; ) {
 			    	categoriesList.add(line);
 			    }
-			    // line is not visible here.
 			}
 			
 			System.out.println(categoriesList);
 						
 			System.out.println("Total number of queries: " + categoriesList.size());
 			
-			HashMap<String,HashMap<String,Float>> BM25CategoryPreds = findQuery(new BM25Similarity(), categoriesList, "run-1", "BM25 Algorithm");
-			HashMap<String,HashMap<String,Float>> ClassicCategoryPreds = findQuery(new ClassicSimilarity(), categoriesList, "run-1", "Classic Algorithm");
-			HashMap<String,HashMap<String,Float>>  LMDCategoryPreds= findQuery(new LMDirichletSimilarity(), categoriesList, "run-1", "LMD Algorithm");
-			HashMap<String,HashMap<String,Float>> LMJMCategoryPreds = findQuery(new LMJelinekMercerSimilarity(.7f), categoriesList, "run-1", "LMJM Algorithm");
+			HashMap<String,HashMap<String,Float>> BM25CatPreds = findQuery(new BM25Similarity(), categoriesList, "BM25 Algorithm");
+			HashMap<String,HashMap<String,Float>> ClassicCatPreds = findQuery(new ClassicSimilarity(), categoriesList, "Classic Algorithm");
+			HashMap<String,HashMap<String,Float>>  LMDCatPreds= findQuery(new LMDirichletSimilarity(), categoriesList, "LMD Algorithm");
+			HashMap<String,HashMap<String,Float>> LMJMCatPreds = findQuery(new LMJelinekMercerSimilarity(.7f), categoriesList, "LMJM Algorithm");
 
-			System.out.println("BM25 :" + BM25CategoryPreds);
-			System.out.println("Classic :" + ClassicCategoryPreds);
-			System.out.println("LMD :" + LMDCategoryPreds);
-			System.out.println("LMJM :" + LMJMCategoryPreds);
+			System.out.println("BM25 :" + BM25CatPreds);
+			System.out.println("Classic :" + ClassicCatPreds);
+			System.out.println("LMD :" + LMDCatPreds);
+			System.out.println("LMJM :" + LMJMCatPreds);
+			
+			businessToCatMapping(BM25CatPreds,"BM25QueryResults.csv");
+			businessToCatMapping(ClassicCatPreds,"ClassicQueryResults.csv");
 
-			
-			businessToCatMapping(BM25CategoryPreds,"BM25QueryResults.csv");
-			businessToCatMapping(ClassicCategoryPreds,"ClassicQueryResults.csv");
-			businessToCatMapping(LMDCategoryPreds,"LMDQueryResults.csv");
-			businessToCatMapping(LMJMCategoryPreds,"LMJMQueryResults.csv");
-			
+			businessToCatMapping(LMDCatPreds,"LMDQueryResults.csv");
+			businessToCatMapping(LMJMCatPreds,"LMJMQueryResults.csv");
+
 			System.out.println("DONE");
 
 		
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 
-	public static HashMap<String,HashMap<String,Float>> findQuery(Similarity sAlgo,
-																  List<String> queryList,
-																  String runID, String outFileName)
+	public static HashMap<String,HashMap<String,Float>>  findQuery(Similarity sAlgo, List<String> queryList, String outFileName)
 			throws IOException, ParseException {
 
 		System.out.println("Finding results using " + outFileName );
-//		String index = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/indexes/review_sub/";
-		String index = pathString + "output/indexes/review_sub/";
+		String index = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/index/review_sub/";
 		IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
 		IndexSearcher searcher = new IndexSearcher(reader);
 
@@ -104,9 +99,7 @@ public class PredictCategories {
 		
 		System.out.println("QueryList :" + queryList);
 		for (String queryString : queryList) {
-			// String queryString = "police";
 
-			System.out.println("qString: " + queryString);
 			Query query = parser.parse(QueryParser.escape(queryString));
 			System.out.println("Searching for: " + query.toString("text"));
 
@@ -140,33 +133,41 @@ public class PredictCategories {
 					catToScoreMap.put(queryString, score);
 					categoryPredictions.put(businessId,catToScoreMap);
 				}
+				
+				
 				 System.out.println("TEXT: "+doc.get("text"));
 				//System.out.println(result);
 				rank++;
+			
 			}
-		}
-		reader.close();
-		return categoryPredictions;
-	}
+			
 
+		}
+
+		reader.close();
+		
+		return categoryPredictions;
+		}
 	
 	public static void businessToCatMapping(HashMap<String,HashMap<String,Float>> catMapping,String fileName) throws IOException{
 		
 		System.out.println("Writing results in " + fileName);
 		for(Map.Entry<String, HashMap<String,Float>> outer : catMapping.entrySet()){
-//			System.out.println("Business Id: " + outer.getKey());
-//			System.out.println();
+			System.out.println("Business Id: " + outer.getKey());
+			//System.out.println();
 			HashMap<String, Float> innerMap = outer.getValue();
 			Map<String, Float> sortedMap = sortByValue(innerMap);
-			//System.out.println(sortedMap);
-			int n =0;
-			CSVWriter csvWriter= new CSVWriter(new FileWriter(pathString + "output/indexes/QueryResults/" + fileName, true));
-			ArrayList arrayList=new ArrayList<>();
+//			System.out.println(sortedMap);
+			int n=0;
+			CSVWriter csvWriter= new CSVWriter(new FileWriter("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/QueryResults/" + fileName, true));
+			ArrayList<Object> arrayList=new ArrayList<>();
+			System.out.println("OuterKey:" + outer.getKey());
 			arrayList.add(outer.getKey());
 			for(Map.Entry<String, Float> inner : sortedMap.entrySet()){
 				if(n<=2){
-				arrayList.add(inner.getKey());
 				System.out.print("Category: " + inner.getKey() + "Value  "  + inner.getValue());
+				arrayList.add(inner.getKey());
+				arrayList.add(inner.getValue().toString());
 				n++;
 				}
 			}
@@ -175,13 +176,8 @@ public class PredictCategories {
 			if(a[0].toString().length() < 30){
 				csvWriter.writeNext(res);
 				csvWriter.close();
-			}else{
-				//System.out.println(a[0]);
-				System.out.println("No prediction for : " + a[0]);
-
-			}
-			
 			//System.out.println();
+		}
 		}
 
 	}
