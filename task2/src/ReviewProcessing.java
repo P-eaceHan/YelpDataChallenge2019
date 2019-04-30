@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.*;
 //import java.lang.*;
 
@@ -26,7 +23,6 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  *
  * Our baseline: SVM
  * Our algo: NB - global vs. local ? (also maybe CNN)
- * TODO: word embeddings (potentially with gensim)
  * RNN based model
  * CNN model (adjectives, nouns and contexts), TFIDF feature selection
  * @author Peace Han
@@ -44,6 +40,7 @@ class FeatureVector {
     int posScore, negScore;
     List<Context> jjs; // list of adjectives and their context words
     List<Context> nns; // list of nouns and their context words
+    List<Context> jns; // list of adjectives and nouns, with contexts, in order of appearance
 
     FeatureVector(String revID, String revText, float stars){
         this.revID = revID;
@@ -56,6 +53,27 @@ class FeatureVector {
     }
     void setNegScore(int score) {
         this.negScore = score;
+    }
+
+    public String printJJs(){
+        return jjs.toString().replace(",", "")
+                .replace("[", "")
+                .replace("]", "")
+                .trim();
+    }
+
+    public String printNNs(){
+        return nns.toString().replace(",", "")
+                .replace("[", "")
+                .replace("]", "")
+                .trim();
+    }
+
+    public String printJNs(){
+        return jns.toString().replace(",", "")
+                .replace("[", "")
+                .replace("]", "")
+                .trim();
     }
 
     public String toString(){
@@ -71,15 +89,6 @@ class FeatureVector {
         sb.append(jjs);
         sb.append("\t");
         sb.append(nns);
-        sb.append("\n");
-        return sb.toString();
-    }
-
-    public String getStar() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(revID);
-        sb.append("\t");
-        sb.append(stars);
         sb.append("\n");
         return sb.toString();
     }
@@ -119,13 +128,14 @@ class Context {
         sb.append(context.get(4));
         sb.append(" ");
         sb.append(context.get(5));
-        // for [keyword, w-3, w-2, w-1, w+1, w+2, w+3]
-//        sb.append("[");
-//        sb.append(this.keyword);
-//        sb.append(", ");
-//        String cont = new StringBuilder(this.context.toString())
-//                .deleteCharAt(0).toString(); // delete the initial "[" from context
-//        sb.append(cont);
+        // uncomment below for [keyword, w-3, w-2, w-1, w+1, w+2, w+3]
+        /*
+        sb.append("[");
+        sb.append(this.keyword);
+        sb.append(", ");
+        String cont = new StringBuilder(this.context.toString())
+                .deleteCharAt(0).toString(); // delete the initial "[" from context
+        sb.append(cont);*/
         return sb.toString();
     }
 }
@@ -139,6 +149,7 @@ public class ReviewProcessing {
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma");
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+
         String revText = review.revText;
         CoreDocument doc = new CoreDocument(revText);
         pipeline.annotate(doc);
@@ -149,9 +160,14 @@ public class ReviewProcessing {
         int i = 0; // sentence index
         LinkedList<Index> jjInxs = new LinkedList<>();
         LinkedList<Index> nnInxs = new LinkedList<>();
+        LinkedList<Index> jnInxs = new LinkedList<>();
         for (CoreSentence sent : sentences) {
             List<CoreLabel> toks = sent.tokens();
+            // get rid of punctuation
+//            String punctTags = "!\"\"''#$%&()-LRB-RRB-*+,-./:;<=>?@[\\]^_``{|}~\t\n";
+//            toks.removeIf(tok -> punctTags.contains(tok.tag()));
             int j = 0; // token index
+//            System.out.println(sent.text());
             for (CoreLabel t: toks) {
 //                System.out.println("this is the value: " + t.value());
 //                System.out.println("this is the word: " + t.word());
@@ -165,10 +181,11 @@ public class ReviewProcessing {
                     neg++;
                 // identify indexes of JJs/NNs
                 if (t.tag().contains("JJ")){
-                    // do something with i,j
                     jjInxs.add(new Index(i, j));
+                    jnInxs.add(new Index(i, j));
                 } else if (t.tag().contains("NN")) {
                     nnInxs.add(new Index(i, j));
+                    jnInxs.add(new Index(i, j));
                 }
                 j++;
             }
@@ -181,8 +198,10 @@ public class ReviewProcessing {
 //        System.out.println(jjs);
         List<Context> nns = buildContexts(nnInxs, sentences);
 //        System.out.println(nns);
+        List<Context> jns = buildContexts(jnInxs, sentences);
         review.jjs = jjs;
         review.nns = nns;
+        review.jns = jns;
     }
 
     private static List<Context> buildContexts(LinkedList<Index> indeces,
@@ -191,36 +210,38 @@ public class ReviewProcessing {
         // contexts are w-3, w-2, w-1, w+1, w+2, w+3
         for (Index index : indeces) {
             CoreSentence sentence = sentences.get(index.i);
-            String keyword = sentence.tokens().get(index.j).word();
+            String keyword = sentence.tokens().get(index.j).lemma();
+            // get rid of punctuation
+
             List<String> context = new LinkedList<>();
             try {
-                context.add(sentence.tokens().get(index.j-3).word());
+                context.add(sentence.tokens().get(index.j-3).lemma());
 
             } catch (IndexOutOfBoundsException ex) {
                 context.add("%null%");
             }
             try {
-                context.add(sentence.tokens().get(index.j-2).word());
+                context.add(sentence.tokens().get(index.j-2).lemma());
             } catch (IndexOutOfBoundsException ex) {
                 context.add("%null%");
             }
             try {
-                context.add(sentence.tokens().get(index.j-1).word());
+                context.add(sentence.tokens().get(index.j-1).lemma());
             } catch (IndexOutOfBoundsException ex) {
                 context.add("%null%");
             }
             try {
-                context.add(sentence.tokens().get(index.j+1).word());
+                context.add(sentence.tokens().get(index.j+1).lemma());
             } catch (IndexOutOfBoundsException ex) {
                 context.add("%null%");
             }
             try {
-                context.add(sentence.tokens().get(index.j+2).word());
+                context.add(sentence.tokens().get(index.j+2).lemma());
             } catch (IndexOutOfBoundsException ex) {
                 context.add("%null%");
             }
             try {
-                context.add(sentence.tokens().get(index.j+3).word());
+                context.add(sentence.tokens().get(index.j+3).lemma());
             } catch (IndexOutOfBoundsException ex) {
                 context.add("%null%");
             }
@@ -232,8 +253,11 @@ public class ReviewProcessing {
     }
 
     public static void main(String[] arg) throws Exception {
+        long startTime = System.nanoTime();
         String pathString = "../data/";
-        String filename = "output/review_sub.csv";
+        String filename = "task2/review_sub_task2.csv";
+
+        /*
         String posWords = "opinion-lexicon-English/positive-words.txt";
         String negWords = "opinion-lexicon-English/negative-words.txt";
 
@@ -245,7 +269,7 @@ public class ReviewProcessing {
         while ((line = buffr.readLine()) != null) {
             if (!line.contains(";")) {
 //                System.out.println(line);
-                line.trim();
+                line = line.trim();
                 sentPos.put(line,sentVal);
             }
         }
@@ -255,43 +279,99 @@ public class ReviewProcessing {
         while ((line = buffr.readLine()) != null) {
             if (!line.contains(";")) {
 //                System.out.println(line);
-                line.trim();
+                line = line.trim();
                 sentNeg.put(line,sentVal);
             }
         }
         System.out.println(sentPos.toString());
         System.out.println(sentNeg.toString());
+        */
 
-        String outfilename = "task2/review_features.tsv";
-        File outfile = new File(pathString + outfilename);
-        FileWriter features = new FileWriter(outfile);
-        String outfilename2 = "task2/review_features2.tsv";
-        File outfile2 = new File(pathString + outfilename2);
-        FileWriter features2 = new FileWriter(outfile2);
-        String outlabelfile = "task2/review_labels2.tsv";
-        File labelfile = new File(pathString + outlabelfile);
-        FileWriter labels = new FileWriter(labelfile);
-        file = new File(pathString + filename);
-        buffr = new BufferedReader(new FileReader(file));
+        // raw text
+        String rawString = "task2/features3.0/rawText.tsv";
+        File rawFile = new File(pathString + rawString);
+        PrintWriter rawText = new PrintWriter(rawFile);
+
+        // JJ contexts only
+        String jjString = "task2/features3.0/jjOnly.tsv";
+        File jjFile = new File(pathString + jjString);
+        PrintWriter jjFeatures = new PrintWriter(jjFile);
+
+        // NN contexts only
+        String nnString = "task2/features3.0/nnOnnly.tsv";
+        File nnFile = new File(pathString + nnString);
+        PrintWriter nnFeatures = new PrintWriter(nnFile);
+
+        // JJ+NN, in order
+        String jnMixString = "task2/features3.0/jnMix.tsv";
+        File jnMixFile = new File(pathString + jnMixString);
+        PrintWriter jnMixFeatures = new PrintWriter(jnMixFile);
+
+        // JJ+NN, separate
+        String jnSepString = "task2/features3.0/jnSep.tsv";
+        File jnSepFile = new File(pathString + jnSepString);
+        PrintWriter jnSepFeatures = new PrintWriter(jnSepFile);
+
+        File file = new File(pathString + filename);
+        BufferedReader buffr = new BufferedReader(new FileReader(file));
         System.out.println("extracting feature vectors and labels from " + filename);
-        line = buffr.readLine();
+        String line = buffr.readLine();
         while ((line = buffr.readLine()) != null) {
             String[] lineArr = line.split(",");
             System.out.println(lineArr[6]); // this is the text
             String revID = lineArr[1]; // this is the review id
             String text = lineArr[6];
             float stars = Float.parseFloat(lineArr[2]); // this is the stars rating
-//            FeatureVector featVec = new FeatureVector(revID, text, stars);
-//            processNLP(featVec);
+
+            // write the reviewID
+            rawText.write(revID);
+            jjFeatures.write(revID);
+            nnFeatures.write(revID);
+            jnMixFeatures.write(revID);
+            jnSepFeatures.write(revID);
+
+            rawText.write("\t");
+            jjFeatures.write("\t");
+            nnFeatures.write("\t");
+            jnMixFeatures.write("\t");
+            jnSepFeatures.write("\t");
+
+            // write the correct rating
+            rawText.write(Float.toString(stars));
+            jjFeatures.write(Float.toString(stars));
+            nnFeatures.write(Float.toString(stars));
+            jnMixFeatures.write(Float.toString(stars));
+            jnSepFeatures.write(Float.toString(stars));
+
+            rawText.write("\t");
+            jjFeatures.write("\t");
+            nnFeatures.write("\t");
+            jnMixFeatures.write("\t");
+            jnSepFeatures.write("\t");
+
+            //
+            rawText.write(text);
+            rawText.write("\n");
+
+            FeatureVector featVec = new FeatureVector(revID, text, stars);
+            processNLP(featVec);
+
+            jjFeatures.write(featVec.printJJs());
+            nnFeatures.write(featVec.printNNs());
+            jnMixFeatures.write(featVec.printJNs());
+            jnSepFeatures.write(featVec.printJJs());
+            jnSepFeatures.write(" ");
+            jnSepFeatures.write(featVec.printNNs());
+
+            jjFeatures.write("\n");
+            nnFeatures.write("\n");
+            jnMixFeatures.write("\n");
+            jnSepFeatures.write("\n");
+
 //            System.out.println(featVec.toString());
 //            System.out.println(featVec.getStar());
 //            features.write(featVec.toString());
-            features2.write(revID);
-            features2.write("\t");
-            features2.write(Float.toString(stars));
-            features2.write("\t");
-            features2.write(text);
-            features2.write("\n");
+
 //            labels.write(featVec.getStar());
 //            int posScore = scoreSentiment(sentences, sentPos);
 //            int negScore = scoreSentiment(sentences, sentNeg);
@@ -304,8 +384,14 @@ public class ReviewProcessing {
 //
 //            }
         }
-        features.close();
-        labels.close();
+        jjFeatures.close();
+        nnFeatures.close();
+        jnMixFeatures.close();
+        jnSepFeatures.close();
+        rawText.close();
         buffr.close();
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+        System.out.println("completed in " + duration + "ns");
     }
 }
