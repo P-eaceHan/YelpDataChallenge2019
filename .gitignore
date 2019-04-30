@@ -4,3 +4,4 @@ task1/out/
 subset_param_log.txt
 .ipynb_checkpoints/
 cnn/logs/
+cnn/pickles/

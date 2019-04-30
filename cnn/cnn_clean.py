@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import pickle
 from math import sqrt
 from keras.preprocessing.text import Tokenizer, text_to_word_sequence
 from keras.preprocessing.sequence import pad_sequences
@@ -38,8 +39,9 @@ path = '../'
 # print("total number of labels:", len(labels))
 # print("max feature_vec length:", maxlength)
 
-filename = 'review_features2.tsv'
-# filename = 'test_features.tsv'
+# filename = 'review_features2.tsv'
+# filename = 'rawText.tsv'
+filename = 'test_features.tsv'
 reviews = []  # list of reviews
 label_index = {}  # dictionary of label name, numeric id
 labels = []  # lThe ist of star ratings
@@ -66,16 +68,23 @@ label_set = set(labels)
 print(reviews[0])
 
 # vectorize text features into 2D integer tensor
-# MAX_NUM_WORDS = 5000
+MAX_NUM_WORDS = 5000
 MAX_SEQUENCE_LENGTH = 1000
 
-# tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
-tokenizer = Tokenizer()
+start_time = time.time()
+tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
+# tokenizer = Tokenizer()
 tokenizer.fit_on_texts(reviews)
+end_time = np.round(time.time() - start_time, 2)
+print("tokenizer fit on reviews")
+print("Fitting time:", end_time)
 
 sequences = tokenizer.texts_to_sequences(reviews)
 # MAX_SEQUENCE_LENGTH = max([len(s.split()) for s in reviews])
 print('Max seq len', MAX_SEQUENCE_LENGTH)
+end_time = np.round(time.time() - start_time, 2)
+print("model fitted on x_train, y_train")
+print("Training time:", end_time)
 
 word_index = tokenizer.word_index
 MAX_NUM_WORDS = len(word_index) + 1
@@ -93,27 +102,9 @@ labels = to_categorical(np.asarray(labels))
 print("Shape of data tensor: ", data.shape)
 print("Shape of label tensor: ", labels.shape)
 
-# prepping the embedding matrix
-print("Preparing embedding matrix...")
-# getting the pre-trained word embeddings
-# path = '/home/peace/edu/3/'
-path = '../../3/'
-filename = 'model.txt'  # NLPL dataset 3
-# download from http://vectors.nlpl.eu/repository/ (search for English)
-# ID 3, vector size 300, window 5 'English Wikipedia Dump of February 2017'
-# vocab size: 296630; Algo: Gensim Continuous Skipgram; Lemma: True
-print("Indexing word vectors from", filename)
-
-embeddings_index = {}
-with open(path + filename) as f:
-    for line in f:
-        word, coefs = line.split(maxsplit=1)
-        coefs = np.fromstring(coefs, 'f', sep=' ')
-        word = word.split('_')[0]  # get just the word, not POS info
-        embeddings_index[word] = coefs
-
-print("Found {} word vectors.".format(len(embeddings_index)))
-
+emb_pickle = open('embeddings_index.pkl', 'rb')
+embeddings_index = pickle.load(emb_pickle)
+emb_pickle.close()
 # num_words = min(MAX_NUM_WORDS, len(word_index) + 1)
 
 # splitting into training and validation
