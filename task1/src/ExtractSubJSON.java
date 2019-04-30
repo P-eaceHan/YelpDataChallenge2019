@@ -3,6 +3,7 @@
  * @author Peace Han
  * @author Krupa Patel
  */
+package Task1;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,17 +22,17 @@ public class ExtractSubJSON {
 
     public static void main(String[] args) throws Exception {
         JSONParser parser = new JSONParser();
-        /* Krupa file paths
+        /* Krupa file paths */
         String pathString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/yelp_dataset/";
         String fileString = "business.json";
-        String outString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/business_sub.csv";
+        String outString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/business_sub.json";
         File file = new File(pathString+fileString);
-        */
-        /* Peace file paths */
+        
+        /* Peace file paths 
         String pathString = "../data/";
         String fileString = "business.json";
         String outString = pathString+ "business_sub.csv";
-        File file = new File(pathString+fileString);
+        File file = new File(pathString+fileString); */
 
         System.out.println("Reading in " + fileString);
         BufferedReader buffr = new BufferedReader(new FileReader(file));
@@ -39,8 +40,8 @@ public class ExtractSubJSON {
         HashMap<String, Integer> cats = new HashMap<>();
         int docCount = 0;
         // Krupa file path
-//        PrintWriter pw1 = new PrintWriter("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/categories.csv");
-        PrintWriter pw1 = new PrintWriter(pathString + "output/categories.csv");
+        PrintWriter pw1 = new PrintWriter("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/categories.csv");
+//        PrintWriter pw1 = new PrintWriter(pathString + "output/categories.csv");
         StringBuilder sb = new StringBuilder();
 
         System.out.println("collecting categories...");
@@ -99,33 +100,39 @@ public class ExtractSubJSON {
         while ((line = buffr.readLine()) != null) {
             JSONObject json = (JSONObject) parser.parse(line);
             String catString = (String) json.get("categories");
+//            JSONObject name = (JSONObject) json.get("attributes");
             long review_count = (long) json.get("review_count");
             double stars = (double) json.get("stars");
-            String city = (String) json.get("state");
+            String city = (String) json.get("city");
+            String state = (String) json.get("state");
             if (catString != null){
                 String[] busCats = catString.split(",");
-                if (busCats.length > n) {
+                if (busCats.length > 3) 
+                {
                     for (String cat : busCats) {
                         cat = cat.trim();
-                        if (topK.containsKey(cat) && review_count > 75) {
-                        	if( stars == 1 || stars == 5) {
-                            System.out.println("Review Count: " + review_count);
-                                System.out.println("Stars : " + stars);
-                                if (!sb.equals(cat)) {
-                                    sb.append(cat);
-                                    sb.append("\n");
-                                }
-                                businessIds.put((String) json.get("business_id"), 1);
-                                pw.write(json.toString());
-                                pw.println();
-                                break;
+                        if (topK.containsKey(cat)) {
+                        	if( review_count > 750 && state.contains("AZ")) {
+//                            System.out.println("Review Count: " + review_count);
+//                            System.out.println("Stars : " + stars);
+                        	if(!sb.equals(cat)) {
+                        	sb.append(cat);
+                        	sb.append("\n");
+                        	}
+                            businessIds.put((String) json.get("business_id"), 1);
+                            pw.write(json.toString());
+                            pw.println();
+                            break;
                         	}
                         }
+//                        	}	
+                        
                     }
                 }
+                
             }
         }
-        System.out.println("JSON "+ sb.toString());
+//        System.out.println("JSON "+ sb.toString());
         pw1.write(sb.toString());
 //        pw1.println();
         pw.close();
@@ -140,8 +147,8 @@ public class ExtractSubJSON {
         // now use newly generated subset of business.json to sample from review.json
         parser = new JSONParser();
         fileString = "review.json";
-//        outString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/review_sub.json";
-        outString = pathString + "review_sub.json";
+        outString = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/review_sub_task2.json";
+//        outString = pathString + "review_sub.json";
         file = new File(pathString+fileString);
         outputfile = new File(outString);
         pw = new PrintWriter(outputfile);

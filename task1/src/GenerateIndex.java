@@ -1,3 +1,10 @@
+/**
+ * code to extract and preprocess the Yelp data
+ * @author Peace Han
+ * @author Krupa Patel
+ */
+package Task1;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,25 +49,21 @@ import com.opencsv.CSVReader;
 
 
 public class GenerateIndex {
-	private static String pathString = "../data/";
-
+	
 	public static void main(String[] args) 
 	{
 		System.out.println("Collection creation");
-//		String reviews = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/review_sub.csv";
-//		String tips = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/tip.csv";
-		String reviews = pathString + "output/review_sub.csv";
-//		String tips = pathString + "output/tip.csv";
-
+		//review data file
+		String reviews = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/review_sub_task2.csv";
+		
 		try {		
-			
+			// MAP - key: business_id, value: reviews for all business_id
 			Map<String, ArrayList<String>> reviewsCollection = createReviewList(reviews);
-//			Map<String, ArrayList<String>> tipsCollection = createReviewList(tips);
-
 			
+			//generate index
 			generateIndex(reviewsCollection);
-//			analyseIndexes("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/indexes/review_sub/");
-			analyseIndexes(pathString + "output/indexes/review_sub/");
+
+			analyseIndexes("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/index/review_sub/");
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -73,6 +76,7 @@ public class GenerateIndex {
 		Map<String, ArrayList<String>> textCollection = new HashMap<String, ArrayList<String>>();
 		
 		try {
+			// read data file
 			CSVReader reader = new CSVReader(new FileReader(dataset));
 			int i = 0;
 		
@@ -123,8 +127,7 @@ public class GenerateIndex {
 	public static String removeStopWords(String str) throws IOException {
 		
 		ArrayList<String> stop_words = new ArrayList<String>();
-//		BufferedReader br = new BufferedReader(new FileReader("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/stopwords.txt"));
-		BufferedReader br = new BufferedReader(new FileReader(pathString + "stopwords.txt"));
+		BufferedReader br = new BufferedReader(new FileReader("/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/output/stopwords.txt"));
 		String line = br.readLine();
 		while(line != null) {
 			stop_words.add(line);
@@ -143,6 +146,7 @@ public class GenerateIndex {
 		CharTermAttribute charTermAttribute = tokenizer.addAttribute(CharTermAttribute.class);
 		while(tokenizer.incrementToken()) {
 			String term = charTermAttribute.toString();
+			System.out.println("Stopword : " + term);
 			term.replace(".", " ");
 			sb.append(term + " ");
 		}
@@ -152,9 +156,9 @@ public class GenerateIndex {
 	
 	public static void generateIndex(Map<String, ArrayList<String>> reviewsCollection) throws IOException {
 		
-//		String indexPath = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/indexes/review_sub/";
-		String indexPath = pathString + "output/indexes/review_sub/";
-
+		//path to index generated
+		String indexPath = "/Volumes/Krupa/MISStudy/Spring 2019/Search/Final Project/IR_FinalProject/output/index/review_sub/";
+		
 		Directory dir = FSDirectory.open(Paths.get(indexPath));
 		
 		Analyzer analyzer = new StandardAnalyzer();
@@ -162,9 +166,10 @@ public class GenerateIndex {
 		iwc.setOpenMode(OpenMode.CREATE);
 		IndexWriter writer = new IndexWriter(dir, iwc);
 		
+		// generate list of businesses
 		List<String> businessList = new ArrayList<String>(reviewsCollection.keySet());
-//		businessList.addAll(tipsCollection.keySet());
 		
+		// remove duplicate business ids
 		Set<String> uniqueBusiness = new HashSet<String>();
 		uniqueBusiness.addAll(businessList);
 		businessList.clear();
@@ -172,6 +177,8 @@ public class GenerateIndex {
 		
 		System.out.println(businessList);
 		
+		//list all business_id
+		// build lucene documents using reviews
 		for(String businessID : businessList) {
 			
 			if(businessID == null) {
@@ -184,6 +191,7 @@ public class GenerateIndex {
 		
 		Document doc = new Document();
 		
+		// adding all the reviews in the document for that business
 		if(reviewsCollection.containsKey(businessID)) {
 			for(String review : reviewsCollection.get(businessID)) {
 				
@@ -192,16 +200,6 @@ public class GenerateIndex {
 				doc.add(new TextField("text", review.toLowerCase(), Field.Store.YES));
 			}
 		}
-		
-//		if(tipsCollection.containsKey(businessID)) {
-//			for(String tip : tipsCollection.get(businessID)) {
-//				
-//				doc.add(new TextField("BusinessID", businessID, Field.Store.YES));
-//				isBusinessIDExist = true;
-//				doc.add(new TextField("Text", tip.toLowerCase(), Field.Store.YES));
-//			}
-//		}
-		
 		writer.addDocument(doc);
 		
 	}
