@@ -13,20 +13,22 @@ from keras.callbacks import TensorBoard
 from sklearn.metrics import classification_report, mean_squared_error, r2_score
 
 
+all_start = time.time()
 # output log file
-o_file = 'exp5.txt'
+o_file = 'test_outputs/exp6.txt'
 logfile = open(o_file, 'w')
 
 # getting the features file
 # path = '../data/task2/'
 path = '../cnn_data/'
-filename = 'rawText_lemmatized.tsv'  # the lemmatized review texts
-# filename = 'jjOnly.tsv'            # adjectives and contexts only
+# filename = 'rawText_lemmatized.tsv'  # the lemmatized review texts
+filename = 'jjOnly.tsv'            # adjectives and contexts only
 # filename = 'nnOnly.tsv'            # nouns and contexts only
 # filename = 'jnMix.tsv'             # adjectives and nouns and contexts, in order
 # filename = 'jnSep.tsv'             # adjectives and nouns and contexts, separated
 # filename = 'test_features.tsv'     # small sample file for testing
 logfile.write("results for: " + filename + '\n\n')
+logfile.write("layout: exp4, no max word count")
 reviews = []  # list of reviews
 label_index = {}  # dictionary of label name, numeric id
 labels = []  # lThe ist of star ratings
@@ -40,9 +42,7 @@ with open(path + filename) as f:
         if len(text) > maxlength:
             maxlength = len(text)
         revid = line[0]
-        star = int(float(line[1])) - 1
-        label_id = len(label_index)  # ?
-        label_index[str(star)] = star + 1
+        star = int(float(line[1])) - 1  # subtract 1 for tokenization
         reviews.append(text)
         labels.append(star)
 logfile.write("total number of reviews:")
@@ -50,6 +50,7 @@ logfile.write(str(len(reviews)))
 logfile.write('\n')
 logfile.write("total number of labels:")
 logfile.write(str(len(labels)))
+logfile.write('\n')
 logfile.write('\n')
 print("max feature_vec length:", maxlength)
 # store labels as set
@@ -61,12 +62,13 @@ MAX_NUM_WORDS = 5000
 MAX_SEQUENCE_LENGTH = 1000
 
 start_time = time.time()
-tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)  # TODO: try without setting max limit?
+# tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)  # TODO: try without setting max limit?
+tokenizer = Tokenizer()
 tokenizer.fit_on_texts(reviews)
 end_time = np.round(time.time() - start_time, 2)
 print("tokenizer fit on reviews")
 print("Fitting time:", end_time)
-logfile.write("Fitting time:")
+logfile.write("Fitting time: ")
 logfile.write(str(end_time))
 logfile.write('s\n')
 
@@ -75,12 +77,16 @@ print('Max seq len', MAX_SEQUENCE_LENGTH)
 end_time = np.round(time.time() - start_time, 2)
 print("model fitted on x_train, y_train")
 print("Training time:", end_time)
+logfile.write('Training time: ' + str(end_time))
+logfile.write('\n')
+logfile.write('\n')
 
 word_index = tokenizer.word_index
 MAX_NUM_WORDS = len(word_index) + 1
 print('max num words (vocab size)', MAX_NUM_WORDS)
-logfile.write("max num words (vocab size)")
+logfile.write("max num words (vocab size) ")
 logfile.write(str(MAX_NUM_WORDS))
+logfile.write('\n')
 logfile.write('\n')
 data = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH, padding='post', truncating='post')
 
@@ -120,6 +126,7 @@ logfile.write('\n')
 logfile.write("Shape of y_val: ")
 logfile.write(str(y_val.shape))
 logfile.write('\n')
+logfile.write('\n')
 
 EMBEDDING_DIM = 300
 num_words = len(word_index) + 1
@@ -141,6 +148,7 @@ nonzero_elems = np.count_nonzero(np.count_nonzero(embedding_matrix, axis=1))
 print("word embedding coverage:", nonzero_elems / num_words)
 logfile.write("word embedding coverage: ")
 logfile.write(str(nonzero_elems / num_words))
+logfile.write('\n')
 logfile.write('\n')
 
 embedding_layer = Embedding(x_train.shape[1],
@@ -177,7 +185,7 @@ model.add(Embedding(num_words, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH))
 model.add(Conv1D(128, 5, activation='relu'))
 model.add(GlobalMaxPooling1D())
 model.add(Dense(1000, activation='relu'))
-model.add(Dense(y_train.shape[1], activation='sigmoid'))  # TODO: next run, change to 'softmax' for lemmas
+model.add(Dense(y_train.shape[1], activation='softmax'))  # TODO: next run, change to 'softmax' for lemmas
 
 tensorBoard = TensorBoard(log_dir='./logs', write_graph=True)
 model.compile(loss='categorical_crossentropy',
@@ -186,6 +194,7 @@ model.compile(loss='categorical_crossentropy',
 print("Model Summary:")
 logfile.write("Model Summary:" + '\n')
 model.summary()  # need to manually past summary to logfile after
+logfile.write('\n')
 logfile.write('\n')
 print("model compiled successfully")
 print("Training the model...")
@@ -198,7 +207,7 @@ history = model.fit(x_train, y_train,
 end_time = np.round(time.time() - start_time, 2)
 print("model fitted on x_train, y_train")
 print("Training time:", end_time)
-logfile.write("Training time: " + end_time)
+logfile.write("Training time: " + str(end_time))
 logfile.write('\n')
 logfile.write('\n')
 
@@ -207,16 +216,16 @@ start_time = time.time()
 score, acc, mse_me, cosine = model.evaluate(x_val, y_val, verbose=1)
 end_time = np.round(time.time() - start_time, 2)
 print("Eval time:", end_time)
-logfile.write("Eval time: " + end_time)
+logfile.write("Eval time: " + str(end_time))
 logfile.write('\n')
 
-logfile.write("score:" + score)
+logfile.write("score:" + str(score))
 logfile.write('\n')
-logfile.write("acc:" + acc)
+logfile.write("acc:" + str(acc))
 logfile.write('\n')
-logfile.write("mse:" + mse_me)
+logfile.write("mse:" + str(mse_me))
 logfile.write('\n')
-logfile.write("cosine:" + cosine)
+logfile.write("cosine:" + str(cosine))
 logfile.write('\n')
 logfile.write('\n')
 
@@ -226,39 +235,42 @@ logfile.write('\n')
 start_time = time.time()
 y_pred = model.predict(x_val, 128, verbose=2)
 end_time = np.round(time.time() - start_time, 2)
-logfile.write("predict time:" + end_time)
+logfile.write("predict time:" +str(end_time))
 logfile.write('\n')
-logfile.write(classification_report(y_val.argmax(axis=1),
-                                    y_pred.argmax(axis=1)))
+print(classification_report(y_val.argmax(axis=1),
+                       y_pred.argmax(axis=1)))
 logfile.write('\n')
 mse = mean_squared_error(y_val, y_pred)
-logfile.write("mean squared error:" + mse)
+logfile.write("mean squared error:" + str(mse))
 logfile.write('\n')
-logfile.write("RMSE:" + sqrt(mse))
+logfile.write("RMSE:" + str(sqrt(mse)))
 logfile.write('\n')
 r2 = r2_score(y_val, y_pred)
-logfile.write("r2:" + r2)
+logfile.write("r2:" + str(r2))
 logfile.write('\n')
 logfile.write('\n')
+
 # Evaluating TRAIN
 logfile.write("Evaluating TRAIN model class prediction")
 logfile.write('\n')
 start_time = time.time()
 y_pred = model.predict(x_train, 128, verbose=2)
 end_time = np.round(time.time() - start_time, 2)
-logfile.write("predict time:" + end_time)
+logfile.write("predict time:" + str(end_time))
 logfile.write('\n')
-logfile.write(classification_report(y_train.argmax(axis=1),
-                                    y_pred.argmax(axis=1)))
+print(classification_report(y_train.argmax(axis=1),
+                            y_pred.argmax(axis=1)))
 logfile.write('\n')
 mse = mean_squared_error(y_train, y_pred)
-logfile.write("mean squared error:" + mse)
+logfile.write("mean squared error:" + str(mse))
 logfile.write('\n')
-logfile.write("RMSE:" + sqrt(mse))
+logfile.write("RMSE:" + str(sqrt(mse)))
 logfile.write('\n')
-r2 = r2_score(y_train + y_pred)
-logfile.write("r2:" + r2)
+r2 = r2_score(y_train, y_pred)
+logfile.write("r2:" + str(r2))
 logfile.write('\n')
 
+all_end = np.round(time.time() - all_start, 2)
+logfile.write("Total run time: " + str(all_end))
 logfile.close()
 
