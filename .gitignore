@@ -1,6 +1,7 @@
 data/
 .idea
 task1/out/
+task2/out/
 subset_param_log.txt
 .ipynb_checkpoints/
 cnn/logs/

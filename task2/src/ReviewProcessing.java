@@ -35,7 +35,7 @@ class FeatureVector {
      * [ pos_score, neg_score, [JJs+contexts], [NNs+contexts] ... ]
      */
     String revID;
-    String revText;
+    String revText; // the original text of the review, lemmatized
     float stars;
     int posScore, negScore;
     List<Context> jjs; // list of adjectives and their context words
@@ -54,6 +54,7 @@ class FeatureVector {
     void setNegScore(int score) {
         this.negScore = score;
     }
+
 
     public String printJJs(){
         return jjs.toString().replace(",", "")
@@ -158,6 +159,7 @@ public class ReviewProcessing {
         int pos = 0; // positive score for this review
         int neg = 0; // negative score for this review
         int i = 0; // sentence index
+        LinkedList<String> lemmadRevText = new LinkedList<>();
         LinkedList<Index> jjInxs = new LinkedList<>();
         LinkedList<Index> nnInxs = new LinkedList<>();
         LinkedList<Index> jnInxs = new LinkedList<>();
@@ -174,6 +176,9 @@ public class ReviewProcessing {
 //                System.out.println("this is the lemma: " + t.lemma());
 //                System.out.println("this is the tag: " + t.tag());
 //                System.out.println(t.originalText());
+                // get the lemma of each token
+                String lemma = t.lemma();
+                lemmadRevText.add(lemma);
                 // count the positive and negative scores
                 if (sentPos.containsKey(t.value()) || sentPos.containsKey(t.lemma()))
                     pos++;
@@ -202,6 +207,12 @@ public class ReviewProcessing {
         review.jjs = jjs;
         review.nns = nns;
         review.jns = jns;
+        review.revText = lemmadRevText
+                            .toString()
+                            .replace(",", "")
+                            .replace("[", "")
+                            .replace("]", "")
+                            .trim();
     }
 
     private static List<Context> buildContexts(LinkedList<Index> indeces,
@@ -256,7 +267,7 @@ public class ReviewProcessing {
         long startTime = System.nanoTime();
         String pathString = "../data/";
         String filename = "task2/review_sub_task2.csv";
-
+//        String filename = "task2/test_reviews.csv";
         /*
         String posWords = "opinion-lexicon-English/positive-words.txt";
         String negWords = "opinion-lexicon-English/negative-words.txt";
@@ -288,7 +299,7 @@ public class ReviewProcessing {
         */
 
         // raw text
-        String rawString = "task2/features3.0/rawText.tsv";
+        String rawString = "task2/features4.0/rawText_lemmatized.tsv";
         File rawFile = new File(pathString + rawString);
         PrintWriter rawText = new PrintWriter(rawFile);
 
@@ -349,13 +360,10 @@ public class ReviewProcessing {
             jnMixFeatures.write("\t");
             jnSepFeatures.write("\t");
 
-            //
-            rawText.write(text);
-            rawText.write("\n");
-
             FeatureVector featVec = new FeatureVector(revID, text, stars);
             processNLP(featVec);
 
+            rawText.write(featVec.revText);
             jjFeatures.write(featVec.printJJs());
             nnFeatures.write(featVec.printNNs());
             jnMixFeatures.write(featVec.printJNs());
@@ -363,6 +371,7 @@ public class ReviewProcessing {
             jnSepFeatures.write(" ");
             jnSepFeatures.write(featVec.printNNs());
 
+            rawText.write("\n");
             jjFeatures.write("\n");
             nnFeatures.write("\n");
             jnMixFeatures.write("\n");
