@@ -15,3 +15,6 @@
     For each individual category calculates TF-IDF relevance score ans stores in csv file
 - PredictCategories.java :
     Compares results for category prediction using different algorithms
+
+## Task 2
+   Predict review rating(stars) from the review text using sentiment analysis
