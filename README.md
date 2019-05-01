@@ -3,7 +3,7 @@
 ## Task 1
    Predict business category using review text
    
-### For each
+   For each business we create a Lucene document containing the reviews text. Secondly, proceed to index the Lucene documents.Therafter creating a query list consisting of all the categories from the dataset where each category will be a query term. Calculating the tf-idf scores for each query term for each business.
 
 - ExtractSubJSON.java :
     Extracts subset data from the original Yelp dataset with the selected criteria
