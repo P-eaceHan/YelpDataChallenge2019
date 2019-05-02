@@ -1,0 +1,84 @@
+results for: rawText_lemmatized.tsv
+
+layout: exp4, no max word count
+
+total number of reviews:314
+total number of labels:314
+
+Fitting time: 0.02s
+Training time: 0.03
+
+max num words (vocab size) 3713
+
+Shape of x_train: (252, 1000)
+Shape of y_train: (252, 5)
+Shape of x_val: (62, 1000)
+Shape of y_val: (62, 5)
+
+vocab size: 3713
+word embedding coverage: 0.8319418260166981
+
+Model Summary:
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_2 (Embedding)      (None, 1000, 300)         1113900   
+_________________________________________________________________
+conv1d_1 (Conv1D)            (None, 996, 128)          192128    
+_________________________________________________________________
+global_max_pooling1d_1 (Glob (None, 128)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 1000)              129000    
+_________________________________________________________________
+dense_2 (Dense)              (None, 5)                 5005      
+=================================================================
+Total params: 1,440,033
+Trainable params: 1,440,033
+Non-trainable params: 0
+_________________________________________________________________
+
+Training time: 12.46
+
+Eval time: 0.18
+score:1.54473561241
+acc:0.387096776116
+mse:0.153807256972
+cosine:-0.484500740805
+
+Evaluating TEST model class prediction
+predict time:0.21
+              precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00         8
+           1       0.00      0.00      0.00         8
+           2       0.00      0.00      0.00         8
+           3       0.26      0.67      0.38        15
+           4       0.58      0.61      0.60        23
+
+   micro avg       0.39      0.39      0.39        62
+   macro avg       0.17      0.26      0.19        62
+weighted avg       0.28      0.39      0.31        62
+
+mean squared error:0.153807
+RMSE:0.39218267764588044
+r2:-0.0200781289872
+
+Evaluating TRAIN model class prediction
+predict time:0.72
+              precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00        26
+           1       0.00      0.00      0.00        21
+           2       0.00      0.00      0.00        26
+           3       0.65      1.00      0.79        64
+           4       0.75      1.00      0.86       115
+
+   micro avg       0.71      0.71      0.71       252
+   macro avg       0.28      0.40      0.33       252
+weighted avg       0.51      0.71      0.59       252
+
+mean squared error:0.0945046
+RMSE:0.3074160205715012
+r2:0.244972912015
+
+Total run time: 15.06

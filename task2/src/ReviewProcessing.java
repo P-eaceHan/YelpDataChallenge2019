@@ -23,6 +23,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * Our algo: NB - global vs. local ? (also maybe CNN)
  * CNN model
  * @author Peace Han
+ * @author Krupa Patel
  */
 
 /* store features to write to file*/

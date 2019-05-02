@@ -4,6 +4,7 @@ Be sure to run word_embeddings.py before running this code.
 Feature extractions can be obtained by running task2/ReviewProcessing.java (see README.md and cnn/README.md)
 Check TODOs in code below before running to ensure proper selection of features and output file.
 @author Peace Han
+@author Krupa Patel
 """
 import time
 import numpy as np
@@ -22,18 +23,17 @@ from sklearn.metrics import classification_report, mean_squared_error, r2_score
 
 all_start = time.time()
 # output log file
-o_file = 'test_outputs/jnMix_exp2_noMAX.txt'  # TODO change manualy to nnOnly_exp2_noMax.txt
+o_file = 'test_outputs/jjOnly_exp4_test.txt'  # TODO update output file name as needed
 logfile = open(o_file, 'w')
 
 # getting the features file
-# path = '../data/task2/'
-path = '../cnn_data/'
-# filename = 'rawText_lemmatized.tsv'  # the lemmatized review texts
+# path = '../cnn_data/'
+path = '../test_data/task2/'  # directory for test files
+filename = 'rawText_lemmatized.tsv'  # the lemmatized review texts
 # filename = 'jjOnly.tsv'            # adjectives and contexts only
 # filename = 'nnOnly.tsv'            # nouns and contexts only
 # filename = 'jnMix.tsv'             # adjectives and nouns and contexts, in order
 # filename = 'jnSep.tsv'             # adjectives and nouns and contexts, separated
-filename = 'test_features.tsv'     # small sample file for testing
 logfile.write("results for: " + filename + '\n\n')
 logfile.write("layout: exp4, no max word count")
 logfile.write('\n')

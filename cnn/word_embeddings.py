@@ -3,6 +3,7 @@ Code to generate the word embedding matrix from pretrained word embeddings.
 Instructions to obtain embeddings in comments below.
 Run this before running cnn_clean.py
 @author Peace Han
+@author Krupa Patel
 """
 import pickle
 import time
