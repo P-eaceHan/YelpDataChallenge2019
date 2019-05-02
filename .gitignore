@@ -1,8 +1,16 @@
 data/
 .idea
+.project
 task1/out/
 task2/out/
 subset_param_log.txt
 .ipynb_checkpoints/
 cnn/logs/
 cnn/pickles/
+cnn_data/jjOnly.tsv
+cnn_data/jnMix.tsv
+cnn_data/jnSep.tsv
+cnn_data/nnOnly.tsv
+cnn_data/rawText.tsv
+cnn_data/rawText_lemmatized.tsv
+cnn/embeddings_index.pkl

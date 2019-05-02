@@ -1,3 +1,10 @@
+"""
+Code to vectorize input and train CNN model.
+Be sure to run word_embeddings.py before running this code.
+Feature extractions can be obtained by running task2/ReviewProcessing.java (see README.md and cnn/README.md)
+Check TODOs in code below before running to ensure proper selection of features and output file.
+@author Peace Han
+"""
 import time
 import numpy as np
 import pickle
@@ -15,20 +22,22 @@ from sklearn.metrics import classification_report, mean_squared_error, r2_score
 
 all_start = time.time()
 # output log file
-o_file = 'test_outputs/exp6.txt'
+o_file = 'test_outputs/jnMix_exp2_noMAX.txt'  # TODO change manualy to nnOnly_exp2_noMax.txt
 logfile = open(o_file, 'w')
 
 # getting the features file
 # path = '../data/task2/'
 path = '../cnn_data/'
 # filename = 'rawText_lemmatized.tsv'  # the lemmatized review texts
-filename = 'jjOnly.tsv'            # adjectives and contexts only
+# filename = 'jjOnly.tsv'            # adjectives and contexts only
 # filename = 'nnOnly.tsv'            # nouns and contexts only
 # filename = 'jnMix.tsv'             # adjectives and nouns and contexts, in order
 # filename = 'jnSep.tsv'             # adjectives and nouns and contexts, separated
-# filename = 'test_features.tsv'     # small sample file for testing
+filename = 'test_features.tsv'     # small sample file for testing
 logfile.write("results for: " + filename + '\n\n')
 logfile.write("layout: exp4, no max word count")
+logfile.write('\n')
+logfile.write('\n')
 reviews = []  # list of reviews
 label_index = {}  # dictionary of label name, numeric id
 labels = []  # lThe ist of star ratings
@@ -62,8 +71,8 @@ MAX_NUM_WORDS = 5000
 MAX_SEQUENCE_LENGTH = 1000
 
 start_time = time.time()
-# tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)  # TODO: try without setting max limit?
-tokenizer = Tokenizer()
+# tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)  # fit over the MAX_NUM_WORDS most frequent words only
+tokenizer = Tokenizer()  # fit over all words in vocab
 tokenizer.fit_on_texts(reviews)
 end_time = np.round(time.time() - start_time, 2)
 print("tokenizer fit on reviews")
@@ -159,13 +168,14 @@ embedding_layer = Embedding(x_train.shape[1],
                             trainable=False)
 model = Sequential()
 model.add(Embedding(num_words, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH))
+# TODO: uncomment the model structure you wish to test. The main one used in our study is exp4.
 # exp1 structure
 # model.add(Conv1D(128, 5, activation='relu'))
 # model.add(GlobalMaxPooling1D())
 # model.add(Dense(1000, activation='relu'))
 # model.add(Dense(5, activation='sigmoid'))
 
-# exp2 structure
+# exp2 structure - the model architecture used for testing overfitting reduction
 # model.add(Conv1D(128, 5, activation='relu'))
 # model.add(MaxPooling1D(5))
 # model.add(Conv1D(128, 5, activation='relu'))
@@ -181,11 +191,11 @@ model.add(Embedding(num_words, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH))
 # model.add(Flatten())
 # model.add(Dense(5, activation='softmax'))
 
-# exp4 structure
+# exp4 structure - the main model architecture explored in our paper
 model.add(Conv1D(128, 5, activation='relu'))
 model.add(GlobalMaxPooling1D())
 model.add(Dense(1000, activation='relu'))
-model.add(Dense(y_train.shape[1], activation='softmax'))  # TODO: next run, change to 'softmax' for lemmas
+model.add(Dense(y_train.shape[1], activation='softmax'))
 
 tensorBoard = TensorBoard(log_dir='./logs', write_graph=True)
 model.compile(loss='categorical_crossentropy',
@@ -193,7 +203,7 @@ model.compile(loss='categorical_crossentropy',
               metrics=['acc', 'mse', 'cosine'],)
 print("Model Summary:")
 logfile.write("Model Summary:" + '\n')
-model.summary()  # need to manually past summary to logfile after
+model.summary()  # TODO: Once the model finishes, you need to manually paste the summary to results file
 logfile.write('\n')
 logfile.write('\n')
 print("model compiled successfully")
@@ -233,12 +243,13 @@ logfile.write('\n')
 logfile.write("Evaluating TEST model class prediction")
 logfile.write('\n')
 start_time = time.time()
-y_pred = model.predict(x_val, 128, verbose=2)
+y_pred = model.predict(x_val, 128, verbose=1)
 end_time = np.round(time.time() - start_time, 2)
 logfile.write("predict time:" +str(end_time))
 logfile.write('\n')
 print(classification_report(y_val.argmax(axis=1),
-                       y_pred.argmax(axis=1)))
+                            y_pred.argmax(axis=1)))
+# TODO: Once the model finishes, you need to copy over the printed report to the results file.
 logfile.write('\n')
 mse = mean_squared_error(y_val, y_pred)
 logfile.write("mean squared error:" + str(mse))
@@ -260,6 +271,7 @@ logfile.write("predict time:" + str(end_time))
 logfile.write('\n')
 print(classification_report(y_train.argmax(axis=1),
                             y_pred.argmax(axis=1)))
+# TODO: Once the model finishes, you need to copy over the printed report to the results file.
 logfile.write('\n')
 mse = mean_squared_error(y_train, y_pred)
 logfile.write("mean squared error:" + str(mse))
