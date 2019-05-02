@@ -1,0 +1,87 @@
+results for: jjOnly.tsv
+
+layout: exp4, no max word counttotal number of reviews:136904
+total number of labels:136904
+
+Fitting time: 5.97s
+Training time: 10.44
+
+max num words (vocab size) 36850
+
+Shape of x_train: (109524, 1000)
+Shape of y_train: (109524, 5)
+Shape of x_val: (27380, 1000)
+Shape of y_val: (27380, 5)
+
+vocab size: 36850
+word embedding coverage: 0.5193758480325644
+
+Model Summary:
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_2 (Embedding)      (None, 1000, 300)         11055000  
+_________________________________________________________________
+conv1d_1 (Conv1D)            (None, 996, 128)          192128    
+_________________________________________________________________
+max_pooling1d_1 (MaxPooling1 (None, 199, 128)          0         
+_________________________________________________________________
+conv1d_2 (Conv1D)            (None, 195, 128)          82048     
+_________________________________________________________________
+max_pooling1d_2 (MaxPooling1 (None, 39, 128)           0         
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 4992)              0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 128)               639104    
+_________________________________________________________________
+dense_2 (Dense)              (None, 128)               16512     
+_________________________________________________________________
+dense_3 (Dense)              (None, 5)                 645       
+=================================================================
+Total params: 11,985,437
+Trainable params: 11,985,437
+Non-trainable params: 0
+_____________________________________________________
+
+Training time: 10865.31
+
+Eval time: 166.58
+score:0.9011271606578367
+acc:0.6488677867143323
+mse:0.10728869629742195
+cosine:-0.7182100379876275
+
+Evaluating TEST model class prediction
+predict time:165.8
+              precision    recall  f1-score   support
+           0       0.60      0.62      0.61      1612
+           1       0.42      0.31      0.36      1709
+           2       0.50      0.31      0.38      2867
+           3       0.52      0.42      0.47      7401
+           4       0.73      0.89      0.80     13791
+
+   micro avg       0.65      0.65      0.65     27380
+   macro avg       0.56      0.51      0.52     27380
+weighted avg       0.62      0.65      0.63     27380
+
+mean squared error:0.107287206
+RMSE:0.3275472572861977
+r2:0.1978619115636387
+
+Evaluating TRAIN model class prediction
+predict time:663.47
+              precision    recall  f1-score   support
+           0       0.75      0.85      0.79      6259
+           1       0.73      0.55      0.62      6949
+           2       0.78      0.52      0.62     11400
+           3       0.74      0.61      0.66     29731
+           4       0.81      0.96      0.88     55185
+
+   micro avg       0.78      0.78      0.78    109524
+   macro avg       0.76      0.69      0.72    109524
+weighted avg       0.78      0.78      0.77    109524
+
+mean squared error:0.066467695
+RMSE:0.2578132947273721
+r2:0.5115009203889949
+Total run time: 11875.75

@@ -1,0 +1,76 @@
+results for: jjOnly.tsv
+
+total number of reviews:136904
+total number of labels:136904
+
+Fitting time:6.56s
+Training time: 11.61
+
+max num words (vocab size)36850
+
+Shape of x_train: (109524, 1000)
+Shape of y_train: (109524, 5)
+Shape of x_val: (27380, 1000)
+Shape of y_val: (27380, 5)
+
+vocab size: 36850
+word embedding coverage: 0.5193758480325644
+
+Model Summary:
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_2 (Embedding)      (None, 1000, 300)         11055000  
+_________________________________________________________________
+conv1d_1 (Conv1D)            (None, 996, 128)          192128    
+_________________________________________________________________
+global_max_pooling1d_1 (Glob (None, 128)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 1000)              129000    
+_________________________________________________________________
+dense_2 (Dense)              (None, 5)                 5005      
+=================================================================
+Total params: 11,381,133
+Trainable params: 11,381,133
+Non-trainable params: 0
+_________________________________________________________________
+
+Training time: 10190.31
+
+Eval time: 1273.9
+score:1.0418035969061952
+acc:0.6090211833280922
+mse:0.10825569140837087
+cosine:-0.6812953780566453
+
+Evaluating TEST model class prediction
+predict time:151.34
+              precision    recall  f1-score   support
+           0       0.71      0.35      0.47      1584
+           1       0.36      0.44      0.40      1750
+           2       0.40      0.52      0.45      2810
+           3       0.48      0.52      0.50      7442
+           4       0.79      0.73      0.76     13794
+   micro avg       0.61      0.61      0.61     27380
+   macro avg       0.55      0.51      0.51     27380
+weighted avg       0.63      0.61      0.62     27380
+
+mean squared error:0.10825454
+RMSE:0.32902057228439535
+r2:0.16181657708041472
+
+Evaluating TRAIN model class prediction
+predict time:608.72
+              precision    recall  f1-score   support
+           0       0.97      0.76      0.85      6287
+           1       0.77      0.82      0.79      6908
+           2       0.79      0.88      0.83     11457
+           3       0.83      0.83      0.83     29690
+           4       0.93      0.92      0.92     55182
+   micro avg       0.88      0.88      0.88    109524
+   macro avg       0.86      0.84      0.85    109524
+weighted avg       0.88      0.88      0.88    109524
+
+mean squared error:0.038473397
+RMSE:0.19614636752528053
+r2:0.705176299512045
