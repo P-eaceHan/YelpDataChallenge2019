@@ -11,29 +11,22 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
  * Program to extract features from review text in review_sub.csv
  * review_sub.csv structure:
  * [ business_ID, review_id, stars, cool, useful, funny, text ]
- * potential methods:
- *  - Valence-Arousal (VA) measure
- *  - sentiment dictionary
- *  - LTG approach
- *  - text summarization?
- *  - dependency parse?
- * output feature vector:
- * [ pos_score, neg_score, [JJs+contexts], [NNs+contexts] ... ]
- * Alt features..: [ pos_score, neg_score, #!s(?), LTGs ]
+ *
+ * output feature vectors:
+ *   review text, lemmatized
+ *   jjOnly (w-3 w-2 w-1 adjective w+1 w+2 w+3)
+ *   nnOnly (w-3 w-2 w-1 noun w+1 w+2 w+3)
+ *   jnMix (jj and nn contexts, in order of appearance)
+ *   jnSep (jj and nn contexts, listed separately)
  *
  * Our baseline: SVM
  * Our algo: NB - global vs. local ? (also maybe CNN)
- * RNN based model
- * CNN model (adjectives, nouns and contexts), TFIDF feature selection
+ * CNN model
  * @author Peace Han
- * @author Krupa Patel
  */
 
+/* store features to write to file*/
 class FeatureVector {
-    /**
-     * output feature vector:
-     * [ pos_score, neg_score, [JJs+contexts], [NNs+contexts] ... ]
-     */
     String revID;
     String revText; // the original text of the review, lemmatized
     float stars;
@@ -95,9 +88,7 @@ class FeatureVector {
     }
 }
 
-/**
- * A class for storing sentence, token indeces for identifying keywords
- */
+/* A class for storing sentence, token indeces for identifying keywords */
 class Index {
     int i, j;
     Index(int i, int j) {
@@ -106,6 +97,7 @@ class Index {
     }
 }
 
+/* class to store POS word and context words */
 class Context {
     String keyword;
     List<String> context;
@@ -145,8 +137,9 @@ public class ReviewProcessing {
     static HashMap<String, Integer> sentPos = new HashMap<>(6800);
     static HashMap<String, Integer> sentNeg = new HashMap<>(6800);
 
+    /* method to annotate review with StanfordCoreNLP*/
     private static void processNLP(FeatureVector review) {
-        // setting up StanfordCoreNLP
+        // setting up StanfordCoreNLP - be sure to install and run local CoreNLP server
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma");
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
@@ -166,8 +159,8 @@ public class ReviewProcessing {
         for (CoreSentence sent : sentences) {
             List<CoreLabel> toks = sent.tokens();
             // get rid of punctuation
-//            String punctTags = "!\"\"''#$%&()-LRB-RRB-*+,-./:;<=>?@[\\]^_``{|}~\t\n";
-//            toks.removeIf(tok -> punctTags.contains(tok.tag()));
+            String punctTags = "!\"\"''#$%&()-LRB-RRB-*+,-./:;<=>?@[\\]^_``{|}~\t\n";
+            toks.removeIf(tok -> punctTags.contains(tok.tag()));
             int j = 0; // token index
 //            System.out.println(sent.text());
             for (CoreLabel t: toks) {
@@ -215,6 +208,7 @@ public class ReviewProcessing {
                             .trim();
     }
 
+    /* method to extract the target words and contexts */
     private static List<Context> buildContexts(LinkedList<Index> indeces,
                               List<CoreSentence> sentences) {
         List<Context> out = new LinkedList<>();
@@ -265,10 +259,11 @@ public class ReviewProcessing {
 
     public static void main(String[] arg) throws Exception {
         long startTime = System.nanoTime();
-        String pathString = "../data/";
-        String filename = "task2/review_sub_task2.csv";
-//        String filename = "task2/test_reviews.csv";
-        /*
+//        String pathString = "../data/";
+        String pathString = "../test_data/";
+//        String filename = "task2/review_sub_task2.csv";
+        String filename = "test_reviews.csv";
+        /* The following code block for sentiment dictionary, not used in this study
         String posWords = "opinion-lexicon-English/positive-words.txt";
         String negWords = "opinion-lexicon-English/negative-words.txt";
 
@@ -298,34 +293,34 @@ public class ReviewProcessing {
         System.out.println(sentNeg.toString());
         */
 
-        // raw text
-        String rawString = "task2/features4.0/rawText_lemmatized.tsv";
+        // lemma'd text
+        String rawString = "task2/rawText_lemmatized.tsv";
         File rawFile = new File(pathString + rawString);
         PrintWriter rawText = new PrintWriter(rawFile);
 
         // JJ contexts only
-        String jjString = "task2/features3.0/jjOnly.tsv";
+        String jjString = "task2/jjOnly.tsv";
         File jjFile = new File(pathString + jjString);
         PrintWriter jjFeatures = new PrintWriter(jjFile);
 
         // NN contexts only
-        String nnString = "task2/features3.0/nnOnnly.tsv";
+        String nnString = "task2/nnOnly.tsv";
         File nnFile = new File(pathString + nnString);
         PrintWriter nnFeatures = new PrintWriter(nnFile);
 
         // JJ+NN, in order
-        String jnMixString = "task2/features3.0/jnMix.tsv";
+        String jnMixString = "task2/jnMix.tsv";
         File jnMixFile = new File(pathString + jnMixString);
         PrintWriter jnMixFeatures = new PrintWriter(jnMixFile);
 
         // JJ+NN, separate
-        String jnSepString = "task2/features3.0/jnSep.tsv";
+        String jnSepString = "task2/jnSep.tsv";
         File jnSepFile = new File(pathString + jnSepString);
         PrintWriter jnSepFeatures = new PrintWriter(jnSepFile);
 
         File file = new File(pathString + filename);
         BufferedReader buffr = new BufferedReader(new FileReader(file));
-        System.out.println("extracting feature vectors and labels from " + filename);
+        System.out.println("extracting feature vectors and labels from " + pathString + filename);
         String line = buffr.readLine();
         while ((line = buffr.readLine()) != null) {
             String[] lineArr = line.split(",");
@@ -360,6 +355,7 @@ public class ReviewProcessing {
             jnMixFeatures.write("\t");
             jnSepFeatures.write("\t");
 
+            // processing using Stanford CoreNLP
             FeatureVector featVec = new FeatureVector(revID, text, stars);
             processNLP(featVec);
 
