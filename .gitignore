@@ -5,6 +5,8 @@ task1/out/
 task2/out/
 subset_param_log.txt
 .ipynb_checkpoints/
+.DS_Store
+.metadata/
 cnn/logs/
 cnn/pickles/
 cnn_data/jjOnly.tsv
